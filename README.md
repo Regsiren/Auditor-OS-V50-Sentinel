@@ -6,6 +6,8 @@ This repository contains the reference implementation framework for the **V50 Se
 
 **SSRN Core Math Paper:** [INSERT LIVE SSRN URL HERE]
 
+[![Watch the video](https://img.youtube.com/vi/MGH7lfhtYGo/maxresdefault.jpg)](https://youtu.be/MGH7lfhtYGo)
+
 ## 1. Mathematical Foundation
 
 Unlike legacy generative simulation models that rely on macro-scale spatial grids, the V50-S core evaluates point-source time-series streams to capture the **Instantaneous Kinetic Acceleration** ($\ddot{\theta}$) of systemic deviation:
