@@ -36,6 +36,10 @@ The resulting unit-less entropy vector ($\Phi$) provides a deterministic calcula
 
 For the deep mathematical proofs governing the universal scale-invariant thermodynamic loop across infrastructure, biometrics, and cosmological systems, see the full [V50-S Isomorphism White Paper](THEORY.md).
 
+## 📑 Documentation & Specialized Addendums
+
+* **Domain Beta (Biometrics):** For developer onboarding regarding high-frequency biological telemetry insulation and adaptive moving-average smoothing, see [docs/APPENDIX_B_BIOMETRIC_SENTINEL.md](docs/APPENDIX_B_BIOMETRIC_SENTINEL.md).
+
 ## 3. Quickstart Deployment
 
 1. **Install Dependencies:**
