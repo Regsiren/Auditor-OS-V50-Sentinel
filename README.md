@@ -7,7 +7,7 @@ This repository contains the reference implementation framework for the **V50 Se
 ### 📑 Authoritative Preprints (SSRN Working Paper Series)
 
 1. Core Physical Asset Tracking Architecture: [INSERT LIVE PRIMARY SSRN URL HERE]
-2. Cross-Domain Mathematical Isomorphism Note: [INSERT LIVE COMPANION SSRN URL HERE]
+2. [Supplemental Note on the Cross-Domain Mathematical Isomorphism of the Sentinel Loop](THEORY.md) (Biometric & Gravothermal Extensions): [INSERT LIVE COMPANION SSRN URL HERE]
 
 [![Watch the video](https://img.youtube.com/vi/MGH7lfhtYGo/maxresdefault.jpg)](https://youtu.be/MGH7lfhtYGo)
 
