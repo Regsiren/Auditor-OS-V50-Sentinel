@@ -4,7 +4,10 @@
 
 This repository contains the reference implementation framework for the **V50 Sentinel (V50-S) Core**, a stateless, hardware-agnostic telemetry cross-examination engine designed to monitor structural and environmental stability boundaries.
 
-**SSRN Core Math Paper:** [INSERT LIVE SSRN URL HERE]
+### 📑 Authoritative Preprints (SSRN Working Paper Series)
+
+1. Core Physical Asset Tracking Architecture: [INSERT LIVE PRIMARY SSRN URL HERE]
+2. Cross-Domain Mathematical Isomorphism Note: [INSERT LIVE COMPANION SSRN URL HERE]
 
 [![Watch the video](https://img.youtube.com/vi/MGH7lfhtYGo/maxresdefault.jpg)](https://youtu.be/MGH7lfhtYGo)
 
@@ -83,7 +86,7 @@ When `row_hash` is present, `Forensic_kernel.py` validates each zone independent
 
 ## 7. Academic Citation
 
-**SSRN Core Math Paper:** [INSERT LIVE SSRN URL HERE]
+For live preprint URLs, see **Authoritative Preprints (SSRN Working Paper Series)** at the top of this document.
 
 If you utilize this framework, the V50-S core metrics, or the scale-invariant phase space mathematics in an academic, institutional, or commercial research capacity, please cite the foundational paper:
 
