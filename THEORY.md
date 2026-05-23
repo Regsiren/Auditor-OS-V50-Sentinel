@@ -1,0 +1,1 @@
+[Cross-Domain Mathematical Isomorphism of the V50-S Sentinel Loop - Research Note.pdf](https://github.com/user-attachments/files/28166390/Cross-Domain.Mathematical.Isomorphism.of.the.V50-S.Sentinel.Loop.-.Research.Note.pdf)
