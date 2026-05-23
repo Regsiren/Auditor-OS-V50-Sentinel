@@ -29,6 +29,10 @@ The resulting unit-less entropy vector ($\Phi$) provides a deterministic calcula
 * `App.py`: Streamlit-driven operations interface displaying multi-zone phase space portraits and exporting signed `.sent` evidence bags.
 * `Data_Synthesizer.py`: An empirical data synthesizer that seeds a 100-year multi-zone climate/structural dataset profile (AMOC decay lifecycle vs. control baseline) embedded with sub-resolution anomalies.
 
+## 📚 Core Architecture & Theory
+
+For the deep mathematical proofs governing the universal scale-invariant thermodynamic loop across infrastructure, biometrics, and cosmological systems, see the full [V50-S Isomorphism White Paper](THEORY.md).
+
 ## 3. Quickstart Deployment
 
 1. **Install Dependencies:**
