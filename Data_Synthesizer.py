@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
@@ -104,7 +105,8 @@ def generate_macro_sentinel_telemetry():
         master_frames.append(df_zone)
 
     MASTER_TELEMETRY = pd.concat(master_frames, ignore_index=True)
-    filename = "MACRO_SYSTEM_PLANETARY_STREAM.csv"
+    os.makedirs("data", exist_ok=True)
+    filename = os.path.join("data", "MACRO_SYSTEM_PLANETARY_STREAM.csv")
     MASTER_TELEMETRY.to_csv(filename, index=False)
     print(f"Success. Generated structural dataset profile: {filename} ({len(MASTER_TELEMETRY)} total rows synced).")
 

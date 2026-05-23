@@ -4,10 +4,27 @@
 
 This repository contains the reference implementation framework for the **V50 Sentinel (V50-S) Core**, a stateless, hardware-agnostic telemetry cross-examination engine designed to monitor structural and environmental stability boundaries.
 
+## Repository Layout
+
+```
+Auditor-OS-V50-Sentinel/
+├── App.py                      # Streamlit operations interface
+├── Engine.py                   # Stateless fiduciary kernel (V50-S core)
+├── Forensic_kernel.py          # Cryptographic chain-of-custody layer
+├── Data_Synthesizer.py         # Reference telemetry generator
+├── test_engine.py              # Automated validation suite
+├── requirements.txt
+├── assets/                     # Brand assets (sidebar logo)
+├── data/                       # Sample & generated telemetry streams
+└── docs/                       # White papers & specialized addendums
+    ├── THEORY.md
+    └── APPENDIX_B_BIOMETRIC_SENTINEL.md
+```
+
 ### 📑 Authoritative Preprints (SSRN Working Paper Series)
 
 1. Core Physical Asset Tracking Architecture: [INSERT LIVE PRIMARY SSRN URL HERE]
-2. [Supplemental Note on the Cross-Domain Mathematical Isomorphism of the Sentinel Loop](THEORY.md) (Biometric & Gravothermal Extensions): [INSERT LIVE COMPANION SSRN URL HERE]
+2. [Supplemental Note on the Cross-Domain Mathematical Isomorphism of the Sentinel Loop](docs/THEORY.md) (Biometric & Gravothermal Extensions): [INSERT LIVE COMPANION SSRN URL HERE]
 
 [![Watch the video](https://img.youtube.com/vi/MGH7lfhtYGo/maxresdefault.jpg)](https://youtu.be/MGH7lfhtYGo)
 
@@ -34,7 +51,7 @@ The resulting unit-less entropy vector ($\Phi$) provides a deterministic calcula
 
 ## 📚 Core Architecture & Theory
 
-For the deep mathematical proofs governing the universal scale-invariant thermodynamic loop across infrastructure, biometrics, and cosmological systems, see the full [V50-S Isomorphism White Paper](THEORY.md).
+For the deep mathematical proofs governing the universal scale-invariant thermodynamic loop across infrastructure, biometrics, and cosmological systems, see the full [V50-S Isomorphism White Paper](docs/THEORY.md).
 
 ## 📑 Documentation & Specialized Addendums
 
@@ -51,13 +68,13 @@ For the deep mathematical proofs governing the universal scale-invariant thermod
    ```bash
    python Data_Synthesizer.py
    ```
-   This writes `MACRO_SYSTEM_PLANETARY_STREAM.csv` (15,600 rows: 5,200 weekly steps × 3 observation zones).
+   This writes `data/MACRO_SYSTEM_PLANETARY_STREAM.csv` (15,600 rows: 5,200 weekly steps × 3 observation zones).
 
 3. **Launch the Operations Interface:**
    ```bash
    streamlit run App.py
    ```
-   Open the local URL shown in the terminal (typically `http://localhost:8501`), upload the generated CSV, and inspect per-zone phase metrics, kinetic trajectory plots, and `.sent` evidence exports.
+   Open the local URL shown in the terminal (typically `http://localhost:8501`), upload `data/MACRO_SYSTEM_PLANETARY_STREAM.csv`, and inspect per-zone phase metrics, kinetic trajectory plots, and `.sent` evidence exports.
 
 > **Operational Note on UI Behavior:** The Global Master Status Ribbon dynamically reflects the phase state of the worst-performing zone across the entire fleet (the maximum calculated $\Phi$ vector), while individual per-node metric grids track the specific sensor node selected in the dropdown menu.
 

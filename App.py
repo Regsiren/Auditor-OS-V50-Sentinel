@@ -27,7 +27,7 @@ def _logo_path():
     except OSError:
         pass
 
-    targets = ["logo.png", "logo.jpg", "logo.jpeg", "logo.png.jpg", "logo.png.jpeg", "assets/logo.png", "static/logo.png"]
+    targets = ["logo.png", "logo.jpg", "logo.jpeg", "logo.png.jpg", "logo.png.jpeg", "assets/logo.png", "assets/logo.png.jpg", "static/logo.png"]
     roots = (_APP_DIR, os.getcwd(), os.path.abspath("."))
     for t in targets:
         if os.path.isfile(t):
@@ -254,4 +254,4 @@ if uploaded_file is not None:
         )
         
 else:
-    st.info("🌐 SYSTEM READY FOR TELEMETRY INGESTION\n\nPlease upload a validated CSV stream containing the following column headers:\n* **observed_value**: High-resolution material titration or physical boundary coordinate decimals.\n* **power_matrix**: Localized kinetic pump output or thermal energy transport delta (MW).\n* **spatial_displacement**: Multi-dimensional boundary or structural shear vector drift (km).")
+    st.info("🌐 SYSTEM READY FOR TELEMETRY INGESTION\n\nUpload a validated CSV (sample: `data/MACRO_SYSTEM_PLANETARY_STREAM.csv`) with these column headers:\n* **observed_value**: High-resolution material titration or physical boundary coordinate decimals.\n* **power_matrix**: Localized kinetic pump output or thermal energy transport delta (MW).\n* **spatial_displacement**: Multi-dimensional boundary or structural shear vector drift (km).")

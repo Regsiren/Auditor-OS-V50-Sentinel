@@ -22,4 +22,4 @@ Live URL: [INSERT LIVE COMPANION SSRN URL HERE]
 
 ---
 
-*Operational implementation:* [Auditor OS V50-S Core](README.md)
+*Operational implementation:* [Auditor OS V50-S Core](../README.md)
