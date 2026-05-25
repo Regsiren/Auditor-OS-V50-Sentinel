@@ -14,6 +14,7 @@ Auditor-OS-V50-Sentinel/
 ├── Engine.py                   # Stateless fiduciary kernel (V50-S core)
 ├── Forensic_kernel.py          # Cryptographic chain-of-custody layer
 ├── Data_Synthesizer.py         # Reference telemetry generator
+├── resign_telemetry_chain.py   # Re-mint per-zone row_hash seals on launch CSV
 ├── test_engine.py              # Automated validation suite
 ├── requirements.txt
 ├── LICENSE                     # BSL 1.1 (Apache 2.0 after May 25, 2030)
@@ -146,7 +147,11 @@ Uploaded CSV streams must include:
 
 ## 6. Cryptographic Chain of Custody
 
-When `row_hash` is present, `Forensic_kernel.py` validates each zone independently: each row hash incorporates the prior row's seal (`prev_hash` chaining). Regenerate signed telemetry via `Data_Synthesizer.py` after any schema or hashing logic change.
+When `row_hash` is present, `Forensic_kernel.py` validates each zone independently: each row hash incorporates the prior row's seal (`prev_hash` chaining). Regenerate signed telemetry via `Data_Synthesizer.py` after any schema or hashing logic change, or re-seal an existing stream in place:
+
+```bash
+python resign_telemetry_chain.py
+```
 
 ## 7. Academic Citation
 
