@@ -68,9 +68,39 @@ st.sidebar.markdown(f"**Sovereign Telemetry Clock:** `{sovereign_ts}`")
 
 st.sidebar.markdown("---")
 
+# =====================================================================
+# Sentinel Domain Workspace: zone labels → physics profile presets
+# =====================================================================
+st.sidebar.header("🛡️ Sentinel Domain Workspace")
+
+ZONE_REGISTRY = {
+    "ZONE-01-AMOC (Planetary Ocean Conveyor)": "PLANETARY_INFRASTRUCTURE",
+    "ZONE-02-JETSTREAM (Atmospheric Multi-Zone Jet)": "PLANETARY_INFRASTRUCTURE",
+    "ZONE-03-CALDERA (Subterranean Magma Kinetics)": "PLANETARY_INFRASTRUCTURE",
+    "ZONE-04-METABOLIC (Continuous Biometric Ingestion)": "BIOMETRIC_SENTINEL",
+    "ZONE-05-AUTONOMIC (High-Frequency HRV Cadence)": "BIOMETRIC_SENTINEL",
+    "ZONE-06-QUBIT (Quantum Cryogenic Noise Floor)": "QUANTUM_COHERENCE",
+}
+
+# CSV sensor_id values (synthesizer / ingest) → profile preset
+SENSOR_ID_PROFILE_MAP = {
+    "ZONE-01-AMOC-CONVEYOR": "PLANETARY_INFRASTRUCTURE",
+    "ZONE-02-JET-STREAM-ENVELOPE": "PLANETARY_INFRASTRUCTURE",
+    "ZONE-03-CONTROL-BASELINE": "PLANETARY_INFRASTRUCTURE",
+}
+
+selected_zone_label = st.sidebar.selectbox(
+    "Select Target Monitoring Zone:",
+    options=list(ZONE_REGISTRY.keys()),
+)
+resolved_profile = ZONE_REGISTRY[selected_zone_label]
+st.sidebar.info(f"Active Physics Blueprint: **{resolved_profile}**")
+
+st.sidebar.markdown("---")
+
 # 3. File Ingestion Pipeline
 st.sidebar.header("Data Ingestion Pipeline")
-uploaded_file = st.sidebar.file_uploader("Upload Planetary Telemetry Stream (.csv)", type=["csv"])
+uploaded_file = st.sidebar.file_uploader("Upload Telemetry Stream (.csv)", type=["csv"])
 
 st.sidebar.markdown("---")
 st.sidebar.subheader("📖 Operations Room Guide")
@@ -126,6 +156,8 @@ if uploaded_file is not None:
         st.info("Ensure your input data strictly complies with the specification manifest displayed below.")
         st.stop()
 
+    st.success(f"Telemetry ingested — workspace target: {selected_zone_label} (`{resolved_profile}`)")
+
     # Active chain of custody validation check
     with st.sidebar:
         if "row_hash" in df_stream.columns:
@@ -156,7 +188,8 @@ if uploaded_file is not None:
     
     for zone in zone_labels:
         df_zone = df_stream[df_stream["sensor_id"] == zone]
-        report = engine.analyze_systemic_solvency(df_zone)
+        zone_profile = SENSOR_ID_PROFILE_MAP.get(zone, resolved_profile)
+        report = engine.analyze_systemic_solvency(df_zone, profile_name=zone_profile)
         all_reports[zone] = report
         entropy_max = max(entropy_max, report["phi_current"])
         
@@ -204,7 +237,12 @@ if uploaded_file is not None:
         col4.metric("Remaining Useful Life", str(rul_val))
         col5.metric("Kinetic Breaches", str(meta['total_kinetic_breaches']), help="Total threshold anomalies. Note: A stable control zone can accumulate baseline noise breaches without causing an upward shift in Phase Gates or Φ.")
 
-        st.markdown(f"**Current Node Phase Status:** `{meta['phase_label']}` | **Verification Verdict:** `{meta['verdict']}`")
+        profile_label = meta.get("profile_name") or meta.get("domain_id") or resolved_profile
+        st.markdown(
+            f"**Current Node Phase Status:** `{meta['phase_label']}` | "
+            f"**Verification Verdict:** `{meta['verdict']}` | "
+            f"**Physics Blueprint:** `{profile_label}`"
+        )
 
         st.markdown("---")
         
@@ -254,4 +292,12 @@ if uploaded_file is not None:
         )
         
 else:
-    st.info("🌐 SYSTEM READY FOR TELEMETRY INGESTION\n\nUpload a validated CSV (sample: `data/MACRO_SYSTEM_PLANETARY_STREAM.csv`) with these column headers:\n* **observed_value**: High-resolution material titration or physical boundary coordinate decimals.\n* **power_matrix**: Localized kinetic pump output or thermal energy transport delta (MW).\n* **spatial_displacement**: Multi-dimensional boundary or structural shear vector drift (km).")
+    st.info(
+        f"🌐 SYSTEM READY FOR TELEMETRY INGESTION\n\n"
+        f"Sidebar workspace: **{selected_zone_label}** → `{resolved_profile}`\n\n"
+        "Upload a validated CSV (sample: `data/MACRO_SYSTEM_PLANETARY_STREAM.csv`) with these column headers:\n"
+        "* **observed_value**: High-resolution material titration or physical boundary coordinate decimals.\n"
+        "* **power_matrix**: Localized kinetic pump output or thermal energy transport delta (MW).\n"
+        "* **spatial_displacement**: Multi-dimensional boundary or structural shear vector drift (km).\n"
+        "* **sensor_id** (optional): Per-node identifier; known IDs auto-resolve to domain presets."
+    )

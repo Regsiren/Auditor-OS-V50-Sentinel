@@ -1,0 +1,32 @@
+# Business Source License 1.1
+
+**Licensor:** Thohat Ventures  
+**Software:** Auditor OS V50 Sentinel Core Protocol (including Engine.py, Forensic_Kernel.py, and App.py)  
+**Change License:** Apache License, Version 2.0  
+**Change Date:** May 25, 2030  
+
+---
+
+### 1. Grant of License
+
+The Licensor hereby grants you a worldwide, royalty-free, non-exclusive, non-transferable license to use, copy, modify, display, and distribute the Software for Non-Commercial Purposes only.
+
+### 2. Allowed Non-Commercial Uses
+
+You may utilize the Software under this license for:
+
+* Academic and scientific research, peer review, and literature validation.
+* Local testing, benchmarking, and experimental application profiling.
+* Personal, non-revenue-generating developer sandboxes.
+
+### 3. Commercial Restrictions
+
+Any use of the Software for Commercial Production Purposes is strictly prohibited without obtaining a separate, explicit commercial production license from Thohat Ventures. "Commercial Production Purposes" includes, but is not limited to:
+
+* Running the engine within a live production environment of a revenue-generating corporation.
+* Integrating the protocol into a paid diagnostic service, financial asset routing system, or enterprise infrastructure monitoring panel.
+* Packaging the code as a managed cloud service or white-labeled API.
+
+### 4. Automatic Open-Source Transition
+
+On the Change Date (May 25, 2030), or upon an explicit public declaration by the Licensor prior to that date, this license shall automatically terminate, and the Software will transition seamlessly to the Change License (Apache 2.0).

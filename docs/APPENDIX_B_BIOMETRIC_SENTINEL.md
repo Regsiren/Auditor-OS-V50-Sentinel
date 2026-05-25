@@ -48,23 +48,24 @@ To initialize the biological configuration within the core engine, pass the expl
 
 ```python
 import pandas as pd
-from forensic_kernel import verify_telemetry_chain
-from engine import analyze_systemic_solvency
+import Forensic_kernel as kernel
+import Engine as engine
 
 # 1. Load the point-source time-series telemetry matrix
 df = pd.read_csv("patient_telemetry.csv")
 
 # 2. Run sequential validation to check for third-party data smoothing anomalies
-is_valid = verify_telemetry_chain(df)
+is_valid = kernel.verify_telemetry_chain(df)
 
 if is_valid:
     # 3. Compute dynamic biological entropy vector path coordinates (Phi)
-    analysis_report = analyze_systemic_solvency(
-        df_raw=df,
-        val_col="biomarker_value",
+    analysis_report = engine.analyze_systemic_solvency(
+        df,
+        profile_name="BIOMETRIC_SENTINEL",
+        val_col="observed_value",
         power_col="power_matrix",
         displacement_col="spatial_displacement",
-        rolling_window=30
+        rolling_window=30,
     )
     
     phi_vector = analysis_report["phi_current"]

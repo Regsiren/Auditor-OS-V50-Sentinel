@@ -14,6 +14,7 @@ Auditor-OS-V50-Sentinel/
 ├── Data_Synthesizer.py         # Reference telemetry generator
 ├── test_engine.py              # Automated validation suite
 ├── requirements.txt
+├── LICENSE                     # BSL 1.1 (Apache 2.0 after May 25, 2030)
 ├── assets/                     # Brand assets (sidebar logo)
 ├── data/                       # Sample & generated telemetry streams
 └── docs/                       # White papers & specialized addendums
@@ -42,11 +43,44 @@ $$F_c = \int_{T-30}^{T} \left| \frac{d^2\theta}{dt^2} \right| \cdot w(\theta, \n
 
 The resulting unit-less entropy vector ($\Phi$) provides a deterministic calculation of the system's **Remaining Useful Life (RUL)** before crossing non-linear phase transition tipping points.
 
+### ⚠️ The Law of Continuous Observation (Telemetry Opacity Failure Mode)
+
+The scale-invariant thermodynamic attribution loop is strictly bounded by the law of continuous observation. The V50-S engine is a deterministic physical framework, not a predictive oracle for closed, hidden, or structurally opaque systems.
+
+For the mathematical second-derivative continuum to calculate a reliable, deterministic Predictive Remaining Useful Life (RUL) Vector, the target system must continuously broadcast its internal state vector via an accessible, time-series telemetry stream ($\theta$).
+
+```
+┌───────────────────────────┐
+│ Raw Streaming Telemetry   │
+└─────────────┬─────────────┘
+              │
+┌─────────────┴─────────────┐
+▼                           ▼
+[Continuous Physics Signals]    [Data Starvation / Opacity]
+Underlying thermodynamic        Insulated or closed internal vectors
+governance
+Trackable kinetic acceleration  Purely stochastic non-physical noise
+│                               │
+▼                               ▼
+┌───────────────────────────┐   ┌───────────────────────────┐
+│ V50 Sentinel Operational  │   │ Titration Firewall Core   │
+│ Solvency Calculated       │   │ Axiom Collapses           │
+└───────────────────────────┘   └───────────────────────────┘
+```
+
+#### Absolute Failure Parameters
+
+1. **Data Starvation:** If the input stream undergoes non-linear decay but its internal micro-variances are completely insulated from point-source telemetry capture, the titration firewall experiences absolute data starvation.
+2. **Pure Stochastic Noise:** If the streaming jitter is driven by purely non-physical random noise with zero underlying thermodynamic governance, the engine's calculus will yield zero predictive value.
+
+The engine requires data velocity to map the path to collapse; it cannot interrogate a ledger that remains closed.
+
 ## 2. Core Repository Architecture
 
 * `Engine.py`: The stateless fiduciary kernel executing the second-derivative acceleration tracking, rolling fatigue integrals, and boundary phase state evaluations.
 * `Forensic_kernel.py`: Handles the local cryptographic chain-of-custody validation layer via sequential, state-less SHA-256 row-pair hashing.
-* `App.py`: Streamlit-driven operations interface displaying multi-zone phase space portraits and exporting signed `.sent` evidence bags.
+* `App.py`: Streamlit operations interface with the **Sentinel Domain Workspace** (zone → physics preset routing) and multi-zone phase space portraits with `.sent` evidence export.
+* `DOMAIN_PROFILES` (`Engine.py`): `PLANETARY_INFRASTRUCTURE`, `BIOMETRIC_SENTINEL`, `QUANTUM_COHERENCE` — scale-invariant gates with domain-specific shear and energy limits.
 * `Data_Synthesizer.py`: An empirical data synthesizer that seeds a 100-year multi-zone climate/structural dataset profile (AMOC decay lifecycle vs. control baseline) embedded with sub-resolution anomalies.
 
 ## 📚 Core Architecture & Theory
@@ -70,11 +104,16 @@ For the deep mathematical proofs governing the universal scale-invariant thermod
    ```
    This writes `data/MACRO_SYSTEM_PLANETARY_STREAM.csv` (15,600 rows: 5,200 weekly steps × 3 observation zones).
 
-3. **Launch the Operations Interface:**
+3. **Run the validation suite (optional):**
+   ```bash
+   python -m pytest test_engine.py -v
+   ```
+
+4. **Launch the Operations Interface:**
    ```bash
    streamlit run App.py
    ```
-   Open the local URL shown in the terminal (typically `http://localhost:8501`), upload `data/MACRO_SYSTEM_PLANETARY_STREAM.csv`, and inspect per-zone phase metrics, kinetic trajectory plots, and `.sent` evidence exports.
+   Open the local URL shown in the terminal (typically `http://localhost:8501`), upload `data/MACRO_SYSTEM_PLANETARY_STREAM.csv`, and inspect per-zone phase metrics, kinetic trajectory plots, and `.sent` evidence exports. Use the sidebar **Sentinel Domain Workspace** to select a monitoring zone and its physics blueprint; synthesized `sensor_id` values auto-map to planetary presets.
 
 > **Operational Note on UI Behavior:** The Global Master Status Ribbon dynamically reflects the phase state of the worst-performing zone across the entire fleet (the maximum calculated $\Phi$ vector), while individual per-node metric grids track the specific sensor node selected in the dropdown menu.
 
@@ -121,6 +160,12 @@ If you utilize this framework, the V50-S core metrics, or the scale-invariant ph
   note={Operational Core: Core V50-S Sentinel Framework}
 }
 ```
+
+## 8. License
+
+This repository is licensed under the **Business Source License 1.1 (BSL 1.1)** by Thohat Ventures. Non-commercial research and developer use is permitted; commercial production use requires a separate license from Thohat Ventures. The Software transitions to **Apache 2.0** on **May 25, 2030**.
+
+See [LICENSE](LICENSE) for the full terms.
 
 ---
 
