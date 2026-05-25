@@ -4,6 +4,8 @@
 
 This repository contains the reference implementation framework for the **V50 Sentinel (V50-S) Core**, a stateless, hardware-agnostic telemetry cross-examination engine designed to monitor structural and environmental stability boundaries.
 
+**Live Operations Portal:** [sentinel.thohatventures.com](https://sentinel.thohatventures.com) — hosted Streamlit interface for multi-zone phase analysis and `.sent` evidence export (no local install required).
+
 ## Repository Layout
 
 ```
@@ -110,10 +112,12 @@ For the deep mathematical proofs governing the universal scale-invariant thermod
    ```
 
 4. **Launch the Operations Interface:**
-   ```bash
-   streamlit run App.py
-   ```
-   Open the local URL shown in the terminal (typically `http://localhost:8501`), upload `data/MACRO_SYSTEM_PLANETARY_STREAM.csv`, and inspect per-zone phase metrics, kinetic trajectory plots, and `.sent` evidence exports. Use the sidebar **Sentinel Domain Workspace** to select a monitoring zone and its physics blueprint; synthesized `sensor_id` values auto-map to planetary presets.
+   - **Hosted:** [sentinel.thohatventures.com](https://sentinel.thohatventures.com)
+   - **Local development:**
+     ```bash
+     streamlit run App.py
+     ```
+     Open the local URL shown in the terminal (typically `http://localhost:8501`), upload `data/MACRO_SYSTEM_PLANETARY_STREAM.csv`, and inspect per-zone phase metrics, kinetic trajectory plots, and `.sent` evidence exports. Use the sidebar **Sentinel Domain Workspace** to select a monitoring zone and its physics blueprint; synthesized `sensor_id` values auto-map to planetary presets.
 
 > **Operational Note on UI Behavior:** The Global Master Status Ribbon dynamically reflects the phase state of the worst-performing zone across the entire fleet (the maximum calculated $\Phi$ vector), while individual per-node metric grids track the specific sensor node selected in the dropdown menu.
 
