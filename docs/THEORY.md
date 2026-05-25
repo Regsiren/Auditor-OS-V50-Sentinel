@@ -55,3 +55,11 @@ Live URL: [INSERT LIVE COMPANION SSRN URL HERE]
 ---
 
 *Operational implementation:* [Auditor OS V50-S Core](../README.md)
+
+### ⚖️ Academic Nomenclature & Calibration Notice
+
+The Auditor OS V50 Sentinel Core Protocol provides a scale-invariant condition-monitoring architecture and cryptographic data governance reference implementation. 
+
+To maintain lightweight operational execution, terms such as 'solvency', 'entropy path (Phi)', and 'topological bifurcation collapse' are utilized as structured physics-based metaphors and domain-calibrated health indices to profile system degradation over sequential data frames. These indicators are constructed using standard digital signal processing, finite difference methods, and absolute deviation limits. 
+
+This reference implementation is designed to establish a standardized telemetry audit trail and automated alert gating specification. Independent researchers and operators are encouraged to fork this repository to empirically calibrate boundary thresholds, test alternative smoothing windows, and submit domain-specific physics validation profiles against live empirical datasets.

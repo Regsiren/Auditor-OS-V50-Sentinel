@@ -101,6 +101,17 @@ def analyze_systemic_solvency(
 
     profile_name: Key in DOMAIN_PROFILES (PLANETARY_INFRASTRUCTURE, BIOMETRIC_SENTINEL, QUANTUM_COHERENCE).
     domain_profile: Optional dict merged over the selected preset for fine-grained overrides.
+
+    Mathematical & Operational Caveat
+    ---------------------------------
+    The macro uncertainty coordinate (Phi) functions as a constructed condition-monitoring
+    feature index based on finite differences and absolute deviation scaling, rather than
+    a statistical mechanics partition function or a classical Shannon information measure.
+
+    The Predictive Remaining Useful Life (RUL) steps value operates as a linear heuristic
+    countdown tracking cumulative acceleration momentum. It is highly sensitive to rule-based
+    boundary spikes (such as sudden shear or energy limit drops) and should be interpreted
+    as an operational triage indicator rather than a validated probabilistic survival model.
     """
     cfg = _resolve_cfg(profile_name, domain_profile)
 
