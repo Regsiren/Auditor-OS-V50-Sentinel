@@ -147,11 +147,19 @@ Uploaded CSV streams must include:
 
 ## 6. Cryptographic Chain of Custody
 
-When `row_hash` is present, `Forensic_kernel.py` validates each zone independently: each row hash incorporates the prior row's seal (`prev_hash` chaining). Regenerate signed telemetry via `Data_Synthesizer.py` after any schema or hashing logic change, or re-seal an existing stream in place:
+When `row_hash` is present, `Forensic_kernel.py` validates each `sensor_id` chain independently (protocol `THOHAT-V50-SENTINEL`):
+
+- Each zone is sorted chronologically and anchored by a deterministic genesis hash, `SHA-256("GENESIS_<sensor_id>")`.
+- Every row binds the prior row's seal: `Hash_t = SHA-256(NormalizedFeatures_t || prev_hash:Hash_{t-1} || salt)`.
+- Numeric fields are canonicalized at fixed decimal precision so the chain stays stable across CSV round-trips.
+
+Regenerate signed telemetry via `Data_Synthesizer.py` (which delegates sealing to the resign utility), or re-seal an existing stream in place:
 
 ```bash
 python resign_telemetry_chain.py
 ```
+
+> **Compatibility note:** This sealing model is not backward compatible with streams signed by earlier revisions. Re-seal any legacy CSV through `resign_telemetry_chain.py` before verification.
 
 ## 7. Academic Citation
 

@@ -47,7 +47,7 @@ st.set_page_config(page_title="Auditor OS V50-S", layout="wide")
 # 1. Core Brand Ingestion Block
 _logo = _logo_path()
 if _logo:
-    st.sidebar.image(_logo, use_container_width=True)
+    st.sidebar.image(_logo, width="stretch")
 else:
     st.sidebar.markdown("<h2 style='text-align: center; color: #7f8c8d;'>THOHAT VENTURES</h2>", unsafe_allow_html=True)
 
