@@ -33,19 +33,41 @@ def test_unsigned_stream_firewall():
 
 def test_positive_cryptographic_chain_validation():
     raw_data = {
+        "timestamp": ["2026-05-20 00:00:00", "2026-05-27 00:00:00", "2026-06-03 00:00:00"],
+        "sensor_id": ["ZONE-TEST", "ZONE-TEST", "ZONE-TEST"],
         "observed_value": [35.00000000, 34.99999988, 34.99999971],
         "power_matrix": [1000.0, 999.98, 999.96],
         "spatial_displacement": [0.0, 0.001, 0.002],
     }
     df_test = pd.DataFrame(raw_data)
+    prev_hash = kernel.genesis_hash("ZONE-TEST")
     row_hashes = []
-    for _, row in df_test.iterrows():
-        row_dict = row.to_dict()
-        if row_hashes:
-            row_dict["prev_hash"] = row_hashes[-1]
-        row_hashes.append(kernel.generate_stateless_row_hash(row_dict))
+    for idx in range(len(df_test)):
+        current_hash = kernel.generate_stateless_row_hash(df_test.iloc[idx].to_dict(), prev_hash)
+        row_hashes.append(current_hash)
+        prev_hash = current_hash
     df_test["row_hash"] = row_hashes
     assert kernel.verify_telemetry_chain(df_test) is True
+
+
+def test_tampered_chain_detection():
+    raw_data = {
+        "timestamp": ["2026-05-20 00:00:00", "2026-05-27 00:00:00", "2026-06-03 00:00:00"],
+        "sensor_id": ["ZONE-TEST", "ZONE-TEST", "ZONE-TEST"],
+        "observed_value": [35.00000000, 34.99999988, 34.99999971],
+        "power_matrix": [1000.0, 999.98, 999.96],
+        "spatial_displacement": [0.0, 0.001, 0.002],
+    }
+    df_test = pd.DataFrame(raw_data)
+    prev_hash = kernel.genesis_hash("ZONE-TEST")
+    row_hashes = []
+    for idx in range(len(df_test)):
+        current_hash = kernel.generate_stateless_row_hash(df_test.iloc[idx].to_dict(), prev_hash)
+        row_hashes.append(current_hash)
+        prev_hash = current_hash
+    df_test["row_hash"] = row_hashes
+    df_test.loc[1, "observed_value"] = 40.0
+    assert kernel.verify_telemetry_chain(df_test) is False
 
 
 def test_domain_profile_preset():

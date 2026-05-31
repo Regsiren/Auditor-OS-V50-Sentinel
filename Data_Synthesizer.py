@@ -2,7 +2,7 @@ import os
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
-import Forensic_kernel as kernel
+from resign_telemetry_chain import resign_telemetry_chain
 
 def generate_macro_sentinel_telemetry():
     print("Initializing Unconstrained Planetary Telemetry Synthesizer...")
@@ -93,21 +93,16 @@ def generate_macro_sentinel_telemetry():
         data["spatial_displacement"] = displacement_vector
         
         df_zone = pd.DataFrame(data)
-
-        row_hashes = []
-        for idx, row in df_zone.iterrows():
-            row_dict = row.to_dict()
-            if row_hashes:
-                row_dict["prev_hash"] = row_hashes[-1]
-            row_hashes.append(kernel.generate_stateless_row_hash(row_dict))
-
-        df_zone["row_hash"] = row_hashes
         master_frames.append(df_zone)
 
     MASTER_TELEMETRY = pd.concat(master_frames, ignore_index=True)
     os.makedirs("data", exist_ok=True)
     filename = os.path.join("data", "MACRO_SYSTEM_PLANETARY_STREAM.csv")
     MASTER_TELEMETRY.to_csv(filename, index=False)
+
+    # Delegate cryptographic sealing to the forensic resign utility so generation and
+    # verification share one canonical ordering (per-zone, timestamp-sorted, genesis-anchored).
+    resign_telemetry_chain(filename)
     print(f"Success. Generated structural dataset profile: {filename} ({len(MASTER_TELEMETRY)} total rows synced).")
 
 if __name__ == "__main__":
