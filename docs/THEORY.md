@@ -48,9 +48,9 @@ The engine requires data velocity to map the path to collapse; it cannot interro
 
 [Cross-Domain Mathematical Isomorphism of the V50-S Sentinel Loop — Research Note (PDF)](https://github.com/user-attachments/files/28166390/Cross-Domain.Mathematical.Isomorphism.of.the.V50-S.Sentinel.Loop.-.Research.Note.pdf)
 
-## Companion SSRN Preprint
+## Companion arXiv Preprint
 
-Live URL: [INSERT LIVE COMPANION SSRN URL HERE]
+Subject categories: [arXiv:math-ph / cs.LG]
 
 ---
 

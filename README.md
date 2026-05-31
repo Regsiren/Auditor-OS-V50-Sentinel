@@ -25,10 +25,10 @@ Auditor-OS-V50-Sentinel/
     └── APPENDIX_B_BIOMETRIC_SENTINEL.md
 ```
 
-### 📑 Authoritative Preprints (SSRN Working Paper Series)
+### 📑 Authoritative Preprints (arXiv Preprint Series)
 
-1. Core Physical Asset Tracking Architecture: [INSERT LIVE PRIMARY SSRN URL HERE]
-2. [Supplemental Note on the Cross-Domain Mathematical Isomorphism of the Sentinel Loop](docs/THEORY.md) (Biometric & Gravothermal Extensions): [INSERT LIVE COMPANION SSRN URL HERE]
+1. Core Physical Asset Tracking Architecture: [arXiv:physics.ao-ph]
+2. [Supplemental Note on the Cross-Domain Mathematical Isomorphism of the Sentinel Loop](docs/THEORY.md) (Biometric & Gravothermal Extensions): [arXiv:math-ph / cs.LG]
 
 [![Watch the video](https://img.youtube.com/vi/MGH7lfhtYGo/maxresdefault.jpg)](https://youtu.be/MGH7lfhtYGo)
 
@@ -155,7 +155,7 @@ python resign_telemetry_chain.py
 
 ## 7. Academic Citation
 
-For live preprint URLs, see **Authoritative Preprints (SSRN Working Paper Series)** at the top of this document.
+For live preprint URLs, see **Authoritative Preprints (arXiv Preprint Series)** at the top of this document.
 
 If you utilize this framework, the V50-S core metrics, or the scale-invariant phase space mathematics in an academic, institutional, or commercial research capacity, please cite the foundational paper:
 
@@ -163,7 +163,9 @@ If you utilize this framework, the V50-S core metrics, or the scale-invariant ph
 @article{olaiya2026scale,
   title={Scale-Invariant Thermodynamic Attribution: Mapping Non-Linear Phase Transitions in Macro-Systems via Stateless Telemetry Auditing},
   author={Olaiya, Remi},
-  journal={SSRN Electronic Journal},
+  journal={arXiv preprint},
+  archivePrefix={arXiv},
+  primaryClass={physics.ao-ph},
   year={2026},
   publisher={Thohat Ventures Research Series},
   note={Operational Core: Core V50-S Sentinel Framework}
