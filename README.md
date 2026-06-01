@@ -13,15 +13,18 @@ Auditor-OS-V50-Sentinel/
 ├── App.py                      # Streamlit operations interface
 ├── Engine.py                   # Stateless fiduciary kernel (V50-S core)
 ├── Forensic_kernel.py          # Cryptographic chain-of-custody layer
-├── Data_Synthesizer.py         # Reference telemetry generator
-├── resign_telemetry_chain.py   # Re-mint per-zone row_hash seals on launch CSV
+├── Data_Synthesizer.py         # Planetary reference telemetry generator
+├── Biometric_Synthesizer.py    # BIOMETRIC_SENTINEL demo stream generator
+├── resign_telemetry_chain.py   # Re-mint per-zone row_hash seals on a stream
+├── evaluate_corpus.py          # Faithful Section 6 results-matrix generator
 ├── test_engine.py              # Automated validation suite
 ├── requirements.txt
 ├── LICENSE                     # BSL 1.1 (Apache 2.0 after May 25, 2030)
 ├── assets/                     # Brand assets (sidebar logo)
 ├── data/                       # Sample & generated telemetry streams
 └── docs/                       # White papers & specialized addendums
-    ├── THEORY.md
+    ├── README.md               # Documentation index & contribution horizons
+    ├── THEORY.md               # Core mathematical framework
     └── APPENDIX_B_BIOMETRIC_SENTINEL.md
 ```
 
@@ -105,11 +108,16 @@ For the deep mathematical proofs governing the universal scale-invariant thermod
    ```bash
    python Data_Synthesizer.py
    ```
-   This writes `data/MACRO_SYSTEM_PLANETARY_STREAM.csv` (15,600 rows: 5,200 weekly steps × 3 observation zones).
+   This writes `data/MACRO_SYSTEM_PLANETARY_STREAM.csv` (15,600 rows: 5,200 weekly steps × 3 observation zones). For the biometric domain demo, run `python Biometric_Synthesizer.py` to write `data/BIOMETRIC_SENTINEL_STREAM.csv`.
 
 3. **Run the validation suite (optional):**
    ```bash
    python -m pytest test_engine.py -v
+   ```
+
+   Reproduce the Section 6 empirical results matrix directly from the shipped engine:
+   ```bash
+   python evaluate_corpus.py
    ```
 
 4. **Launch the Operations Interface:**
