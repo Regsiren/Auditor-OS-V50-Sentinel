@@ -111,7 +111,7 @@ with st.sidebar.expander("🔬 Core Metric Explainers", expanded=False):
     
     **Decay Gradient ($F_c$):** In reference software, the continuous integral is evaluated as a uniform 30-step rolling mean of $|\ddot{\theta}|$ — a discretization that preserves the long-term strategic decay signal with minimal compute overhead.
     
-    **Remaining Useful Life (RUL):** Proves predictability. Calculates the precise step countdown before the system crosses into a phase transition.
+    **Remaining Useful Life (RUL):** A linear heuristic countdown estimating the step periods remaining before the system crosses into a phase transition. It is an operational triage indicator, not a validated probabilistic survival model.
     """)
 
 with st.sidebar.expander("📜 V50-S Technical Manual", expanded=False):

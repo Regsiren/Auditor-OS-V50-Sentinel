@@ -180,6 +180,25 @@ If you utilize this framework, the V50-S core metrics, or the scale-invariant ph
 }
 ```
 
+## ⚖️ Scope, Academic Verification, & Commercial Licensing
+
+The equations, finite-difference observer loops, and scale-invariant titration firewalls housed within this repository represent the foundational mathematical kernel of the **Auditor OS V50 Sentinel** open-source release. This code is designed to demonstrate the computational reproducibility of the thermodynamic continuity tracking method when running against clean, normalized, or post-processed research baselines (e.g., idealized PhysioNet or synthetic clinical control arrays). The boundary thresholds and domain profiles are reference defaults intended for independent empirical calibration, not validated clinical constants.
+
+> ⚠️ **IMPORTANT COMMERCIAL DISCLAIMER**
+>
+> The open-source core is a reference implementation of the tracking calculus, intended to be computationally reproducible against clean or idealized baselines. Running this model live on an active field operator or an ambulatory patient — without drowning in strenuous physical-motion noise — requires the proprietary signal-conditioning matrices engineered exclusively into **Auditor OS Oracle**.
+
+### 💼 Enterprise Production Inquiries
+
+If your organization requires real-time telemetry processing for high-acuity clinical environments, defense logistics, tactical ambulatory deployment, or commercial wearable hardware integration, please contact our institutional team to secure an enterprise deployment license for the **Auditor OS Oracle** platform. 
+
+The commercial layer includes:
+* **Adaptive Noise-Gate Engineering:** Dynamic signal-conditioning matrices designed to filter out stride impacts, muscle tremors, and electrode movement artifacts natively.
+* **Live Automated Actuator Hooks:** Production-ready closed-loop hooks to bridge 0.19 $\Phi$ veto verdicts directly into hardware overrides.
+* **C-Suite Multi-Page Reporting Engines:** Automatic, context-aware PDF generation pipelines tailored for corporate risk committees and underwriters.
+
+🌐 Learn more or request an evaluation sandbox at [sentinel.thohatventures.com](https://sentinel.thohatventures.com) or [auditor.thohatventures.com](https://auditor.thohatventures.com).
+
 ## 8. License
 
 This repository is licensed under the **Business Source License 1.1 (BSL 1.1)** by Thohat Ventures. Non-commercial research and developer use is permitted; commercial production use requires a separate license from Thohat Ventures. The Software transitions to **Apache 2.0** on **May 25, 2030**.
