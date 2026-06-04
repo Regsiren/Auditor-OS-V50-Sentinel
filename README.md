@@ -28,10 +28,31 @@ Auditor-OS-V50-Sentinel/
     └── APPENDIX_B_BIOMETRIC_SENTINEL.md
 ```
 
-### 📑 Authoritative Preprints (arXiv Preprint Series)
+### 📑 Theoretical Foundations & Public Records
 
-1. Core Physical Asset Tracking Architecture: [arXiv:physics.ao-ph]
-2. [Supplemental Note on the Cross-Domain Mathematical Isomorphism of the Sentinel Loop](docs/THEORY.md) (Biometric & Gravothermal Extensions): [arXiv:math-ph / cs.LG]
+The mathematical architecture, scale-invariant algorithms, and multi-domain validation use cases governing the reference kernel inside this repository are fully documented across the following public open-access preprints.
+
+**Core Mathematical Theory**
+
+- **Scale-Invariant Thermodynamic Attribution: A Stateless Alternative for Complex System Data Modelling**
+  - *Scope:* Establishes the core mathematical architecture, detailing the sub-resolution titration firewall ($\epsilon = 1 \times 10^{-7}$) and the finite-difference evaluation loops required to isolate the instantaneous kinetic acceleration ($\ddot{\theta}$) of non-linear data streams without legacy moving-average lag.
+  - *Permanent Digital Record:* [https://doi.org/10.5281/zenodo.20548469](https://doi.org/10.5281/zenodo.20548469)
+
+**Domain-Specific Implementations**
+
+- **Scale-Invariant Phase Space Tracking of Planetary Fluid Currents and Atmospheric Vortices**
+  - *Scope:* Implements the protocol across macro-environmental fluid loops (the AMOC conveyor and Equatorial Pacific ENSO heat engines) to track sub-grid multiscale variability and isolate localized thermodynamic transitions under computational constraints.
+  - *Permanent Digital Record:* [doi.org/10.5281/zenodo.20548898](https://doi.org/10.5281/zenodo.20548898)
+
+- **Scale-Invariant Phase Space Tracking in Non-Linear Biological Systems: Preemptive Characterisation of Autonomic Degradation Windows**
+  - *Scope:* Applies the continuity protocol to high-frequency biometric telemetry streams (Heart Rate Variability inter-beat intervals) to decode real-time sympathetic redlining, bypass conscious sensory masking, and predict systemic executive burnout before macroscopic onset ($\Phi \ge 0.07$).
+  - *Permanent Digital Record:* [doi.org/10.5281/zenodo.20549045](https://doi.org/10.5281/zenodo.20549045)
+
+**Macroeconomic Framework**
+
+- **The Fiduciary Theory of Entropy**
+  - *Scope:* Connects the stateless physical titration engine to real-world value attribution, risk mitigation, and automated clearing systems within tokenized sovereign asset networks.
+  - *Financial Research Network Vector:* [SSRN Abstract 6704958](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6704958)
 
 [![Watch the video](https://img.youtube.com/vi/MGH7lfhtYGo/maxresdefault.jpg)](https://youtu.be/MGH7lfhtYGo)
 
@@ -171,19 +192,18 @@ python resign_telemetry_chain.py
 
 ## 7. Academic Citation
 
-For live preprint URLs, see **Authoritative Preprints (arXiv Preprint Series)** at the top of this document.
+For the full open-access record and per-domain DOIs, see **Theoretical Foundations & Public Records** at the top of this document.
 
 If you utilize this framework, the V50-S core metrics, or the scale-invariant phase space mathematics in an academic, institutional, or commercial research capacity, please cite the foundational paper:
 
 ```bibtex
-@article{olaiya2026scale,
-  title={Scale-Invariant Thermodynamic Attribution: Mapping Non-Linear Phase Transitions in Macro-Systems via Stateless Telemetry Auditing},
+@misc{olaiya2026scale,
+  title={Scale-Invariant Thermodynamic Attribution: A Stateless Alternative for Complex System Data Modelling},
   author={Olaiya, Remi},
-  journal={arXiv preprint},
-  archivePrefix={arXiv},
-  primaryClass={physics.ao-ph},
   year={2026},
-  publisher={Thohat Ventures Research Series},
+  publisher={Zenodo},
+  doi={10.5281/zenodo.20548469},
+  url={https://doi.org/10.5281/zenodo.20548469},
   note={Operational Core: Core V50-S Sentinel Framework}
 }
 ```
