@@ -12,7 +12,7 @@ The Auditor OS V50 Sentinel Core Protocol represents a lean, production-grade in
 We welcome peer review, forks, and pull requests from the global scientific community to expand the protocol across the following architectural horizons:
 
 ### 1. Non-Uniform Temporal Parsing (Adaptive $dt$ Loops)
-The current math engine assumes a uniform temporal distribution between sequence records ($\Delta t$). In highly volatile or volatile environments—such as high-frequency quantum phase tracking or sparse astronomical datasets—discrete sampling limits can introduce calculation gaps. 
+The current math engine assumes a uniform temporal distribution between sequence records ($\Delta t$). In highly volatile or sparse environments—such as high-frequency quantum phase tracking or sparse astronomical datasets—discrete sampling limits can introduce calculation gaps. 
 * **Target:** Implement a non-uniform temporal parser that dynamically scales velocity ($\dot{\theta}$) and kinetic acceleration ($\ddot{\theta}$) calculation loops relative to irregular, point-source time-series intervals.
 * **Objective:** Prevent data starvation at the sub-resolution titration firewall ($\epsilon = 1 \times 10^{-7}$) during extreme micro-stochastic events.
 
