@@ -27,7 +27,7 @@ def _logo_path():
     except OSError:
         pass
 
-    targets = ["logo.png", "logo.jpg", "logo.jpeg", "logo.png.jpg", "logo.png.jpeg", "assets/logo.png", "assets/logo.png.jpg", "static/logo.png"]
+    targets = ["logo.png", "logo.jpg", "logo.jpeg", "logo.png.jpg", "logo.png.jpeg", "assets/logo.png", "assets/logo.jpg", "assets/logo.jpeg", "assets/logo.png.jpg", "static/logo.png"]
     roots = (_APP_DIR, os.getcwd(), os.path.abspath("."))
     for t in targets:
         if os.path.isfile(t):
