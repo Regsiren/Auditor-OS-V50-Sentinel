@@ -41,18 +41,19 @@ The mathematical architecture, scale-invariant algorithms, and multi-domain vali
 **Domain-Specific Implementations**
 
 - **Scale-Invariant Phase Space Tracking of Planetary Fluid Currents and Atmospheric Vortices**
-  - *Scope:* Implements the protocol across macro-environmental fluid loops (the AMOC conveyor and Equatorial Pacific ENSO heat engines) to track sub-grid multiscale variability and isolate localized thermodynamic transitions under computational constraints.
-  - *Permanent Digital Record:* [doi.org/10.5281/zenodo.20548898](https://doi.org/10.5281/zenodo.20548898)
+  - *Scope:* Implements the protocol across macro-environmental fluid loops (the AMOC conveyor and Equatorial Pacific ENSO heat engines) to track sub-grid multiscale variability and isolate localised thermodynamic transitions under computational constraints.
+  - *Permanent Digital Record:* [https://doi.org/10.5281/zenodo.20548898](https://doi.org/10.5281/zenodo.20548898)
 
 - **Scale-Invariant Phase Space Tracking in Non-Linear Biological Systems: Preemptive Characterisation of Autonomic Degradation Windows**
   - *Scope:* Applies the continuity protocol to high-frequency biometric telemetry streams (Heart Rate Variability inter-beat intervals) to decode real-time sympathetic redlining, bypass conscious sensory masking, and predict systemic executive burnout before macroscopic onset ($\Phi \ge 0.07$).
-  - *Permanent Digital Record:* [doi.org/10.5281/zenodo.20549045](https://doi.org/10.5281/zenodo.20549045)
+  - *Permanent Digital Record:* [https://doi.org/10.5281/zenodo.20549045](https://doi.org/10.5281/zenodo.20549045)
 
 **Macroeconomic Framework**
 
 - **The Fiduciary Theory of Entropy**
-  - *Scope:* Connects the stateless physical titration engine to real-world value attribution, risk mitigation, and automated clearing systems within tokenized sovereign asset networks.
-  - *Financial Research Network Vector:* [SSRN Abstract 6704958](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6704958)
+  - *Scope:* Connects the stateless physical titration engine to real-world value attribution, risk mitigation, and automated clearing systems within tokenised sovereign asset networks.
+  - *Permanent Digital Record:* [https://doi.org/10.5281/zenodo.20562620](https://doi.org/10.5281/zenodo.20562620)
+  - *Alternative Financial Network Vector:* [SSRN Abstract 6704958](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6704958)
 
 [![Watch the video](https://img.youtube.com/vi/MGH7lfhtYGo/maxresdefault.jpg)](https://youtu.be/MGH7lfhtYGo)
 
