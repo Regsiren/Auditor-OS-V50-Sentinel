@@ -23,3 +23,6 @@ htmlcov/
 Thumbs.db
 .idea/
 .vscode/
+
+# Generated sample datasets (reproducible via the synthesizers)
+data/MARITIME_ASSET_STRUCTURAL_STREAM.csv
