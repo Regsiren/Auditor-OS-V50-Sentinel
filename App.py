@@ -80,6 +80,7 @@ ZONE_REGISTRY = {
     "ZONE-04-METABOLIC (Continuous Biometric Ingestion)": "BIOMETRIC_SENTINEL",
     "ZONE-05-AUTONOMIC (High-Frequency HRV Cadence)": "BIOMETRIC_SENTINEL",
     "ZONE-06-QUBIT (Quantum Cryogenic Noise Floor)": "QUANTUM_COHERENCE",
+    "ZONE-07-RESIDUAL_STREAM (AI Latent Activation & LLM Homeostasis)": "AI_HOMEOSTASIS",
 }
 
 # CSV sensor_id values (synthesizer / ingest) → profile preset
@@ -87,7 +88,39 @@ SENSOR_ID_PROFILE_MAP = {
     "ZONE-01-AMOC-CONVEYOR": "PLANETARY_INFRASTRUCTURE",
     "ZONE-02-JET-STREAM-ENVELOPE": "PLANETARY_INFRASTRUCTURE",
     "ZONE-03-CONTROL-BASELINE": "PLANETARY_INFRASTRUCTURE",
+    "ZONE-07-RESIDUAL_STREAM": "AI_HOMEOSTASIS",
 }
+
+AI_HOMEOSTASIS_COLD_START = (
+    "🧠 SYSTEM ARMED: AI LATENT ACTIVATION & LLM HOMEOSTASIS PROFILE\n\n"
+    "Expecting transformer residual stream telemetry or hidden-state activation vectors.\n"
+    "Tracks second-derivative kinetic acceleration (d²θ/dt²), sub-resolution titration "
+    "firewall breaches (|J_tau| > 1e-7),\n"
+    "and State Uncertainty Coordinates (Omega_t). Triggers Topological Veto at Omega >= 0.19."
+)
+
+
+def _analyze_zone(df_zone: pd.DataFrame, profile_name: str) -> dict:
+    """
+    Route zone analysis to the AI residual auditor or the physical Engine kernel.
+
+    AI_HOMEOSTASIS prefers ``SentinelActivationAuditor`` (soft-falls back to Engine
+    if PyTorch / auditor_ai is unavailable on the host).
+    """
+    if profile_name != "AI_HOMEOSTASIS":
+        return engine.analyze_systemic_solvency(df_zone, profile_name=profile_name)
+
+    try:
+        from auditor_ai.sentinel_engine import analyze_activation_dataframe
+
+        return analyze_activation_dataframe(df_zone, profile_name=profile_name)
+    except ImportError:
+        st.warning(
+            "PyTorch AI auditor unavailable on this host — falling back to Engine.py "
+            "finite-difference proxy for AI_HOMEOSTASIS."
+        )
+        return engine.analyze_systemic_solvency(df_zone, profile_name="AI_HOMEOSTASIS")
+
 
 selected_zone_label = st.sidebar.selectbox(
     "Select Target Monitoring Zone:",
@@ -95,6 +128,8 @@ selected_zone_label = st.sidebar.selectbox(
 )
 resolved_profile = ZONE_REGISTRY[selected_zone_label]
 st.sidebar.info(f"Active Physics Blueprint: **{resolved_profile}**")
+if resolved_profile == "AI_HOMEOSTASIS":
+    st.sidebar.success("AI Homeostasis observer armed (Ω_t / residual stream).")
 
 st.sidebar.markdown("---")
 
@@ -147,14 +182,24 @@ st.markdown("""
 if uploaded_file is not None:
     df_stream = pd.read_csv(uploaded_file)
 
-    # Strict Schema Guardrail Check
-    required_headers = {"observed_value", "power_matrix", "spatial_displacement"}
+    # Strict Schema Guardrail Check (AI profile only requires the activation coordinate)
+    if resolved_profile == "AI_HOMEOSTASIS":
+        required_headers = {"observed_value"}
+    else:
+        required_headers = {"observed_value", "power_matrix", "spatial_displacement"}
     missing_headers = required_headers - set(df_stream.columns)
 
     if missing_headers:
         st.error(f"❌ INVALID TELEMETRY STREAM SCHEMA: Missing required structural columns: {list(missing_headers)}")
         st.info("Ensure your input data strictly complies with the specification manifest displayed below.")
         st.stop()
+
+    # Pad optional physical columns for AI streams so shared plot / mint paths stay robust.
+    if resolved_profile == "AI_HOMEOSTASIS":
+        if "power_matrix" not in df_stream.columns:
+            df_stream["power_matrix"] = 0.0
+        if "spatial_displacement" not in df_stream.columns:
+            df_stream["spatial_displacement"] = 0.0
 
     st.success(f"Telemetry ingested — workspace target: {selected_zone_label} (`{resolved_profile}`)")
 
@@ -181,8 +226,8 @@ if uploaded_file is not None:
     if "sensor_id" in df_stream.columns:
         zone_labels = df_stream["sensor_id"].unique()
     else:
-        zone_labels = ["Main"]
-        df_stream["sensor_id"] = "Main"
+        zone_labels = ["ZONE-07-RESIDUAL_STREAM" if resolved_profile == "AI_HOMEOSTASIS" else "Main"]
+        df_stream["sensor_id"] = zone_labels[0]
         
     all_reports = {}
     entropy_max = 0.0
@@ -190,7 +235,7 @@ if uploaded_file is not None:
     for zone in zone_labels:
         df_zone = df_stream[df_stream["sensor_id"] == zone]
         zone_profile = SENSOR_ID_PROFILE_MAP.get(zone, resolved_profile)
-        report = engine.analyze_systemic_solvency(df_zone, profile_name=zone_profile)
+        report = _analyze_zone(df_zone, zone_profile)
         all_reports[zone] = report
         entropy_max = max(entropy_max, report["phi_current"])
         
@@ -202,11 +247,11 @@ if uploaded_file is not None:
     target_report = all_reports[active_zone]
     banner_text = target_report["system_phase"]
 
-    if target_report["system_phase"] == engine.STATUS_BIFURCATION_COLLAPSE:
+    if target_report["v4_meta"]["quench_kinetic_veto"]:
         banner_color = "#c0392b"
         if quench_zones:
             banner_text = f"{banner_text} — zones: {', '.join(quench_zones)}"
-    elif target_report["system_phase"] == engine.STATUS_METASTABLE_IMPAIRMENT:
+    elif target_report["v4_meta"]["stalled_zone"]:
         banner_color = "#FFBF00"
         if impairment_zones:
             banner_text = f"{banner_text} — zones: {', '.join(impairment_zones)}"
@@ -228,15 +273,18 @@ if uploaded_file is not None:
         target_report = all_reports[selected_zone]
         df_plot = target_report["processed_df"]
         meta = target_report["v4_meta"]
+        is_ai_profile = (meta.get("profile_name") or resolved_profile) == "AI_HOMEOSTASIS"
         
         rul_val = meta['remaining_useful_life_periods']
 
         col1, col2, col3, col4, col5 = st.columns(5)
-        col1.metric("Node Entropy (Φ)", f"{meta['cumulative_entropy']:.4f}")
-        col2.metric("Fleet Max Entropy (Φ)", f"{entropy_max:.4f}", help="Highest entropy vector currently observed across all monitored zones. Drives the top Status Ribbon.")
+        entropy_label = "State Uncertainty (Ω)" if is_ai_profile else "Node Entropy (Φ)"
+        fleet_label = "Fleet Max (Ω)" if is_ai_profile else "Fleet Max Entropy (Φ)"
+        col1.metric(entropy_label, f"{meta['cumulative_entropy']:.4f}")
+        col2.metric(fleet_label, f"{entropy_max:.4f}", help="Highest uncertainty vector currently observed across all monitored zones. Drives the top Status Ribbon.")
         col3.metric("Decay Gradient (Fc)", f"{meta['fatigue_gradient_fc']:.8f}")
         col4.metric("Remaining Useful Life", str(rul_val))
-        col5.metric("Kinetic Breaches", str(meta['total_kinetic_breaches']), help="Total threshold anomalies. Note: A stable control zone can accumulate baseline noise breaches without causing an upward shift in Phase Gates or Φ.")
+        col5.metric("Kinetic Breaches", str(meta['total_kinetic_breaches']), help="Total threshold anomalies. Note: A stable control zone can accumulate baseline noise breaches without causing an upward shift in Phase Gates or Φ/Ω.")
 
         profile_label = meta.get("profile_name") or meta.get("domain_id") or resolved_profile
         st.markdown(
@@ -284,12 +332,17 @@ if uploaded_file is not None:
         
         target_zone_bag = st.selectbox("Select Node for Export:", zone_labels, key="bag_export_sel")
         selected_report = all_reports[target_zone_bag]
+        observer_mode = (
+            "ai_residual_stream"
+            if (selected_report["v4_meta"].get("profile_name") or resolved_profile) == "AI_HOMEOSTASIS"
+            else "physical_telemetry"
+        )
         
         evidence_string = kernel.mint_sentinel_evidence_bag(
             selected_report,
             target_zone_bag,
             runtime="streamlit-ops",
-            observer_mode="physical_telemetry",
+            observer_mode=observer_mode,
             chain_of_custody_verified=is_chain_valid,
         )
         
@@ -303,12 +356,15 @@ if uploaded_file is not None:
         )
         
 else:
-    st.info(
-        f"🌐 SYSTEM READY FOR TELEMETRY INGESTION\n\n"
-        f"Sidebar workspace: **{selected_zone_label}** → `{resolved_profile}`\n\n"
-        "Upload a validated CSV (sample: `data/MACRO_SYSTEM_PLANETARY_STREAM.csv`) with these column headers:\n"
-        "* **observed_value**: High-resolution material titration or physical boundary coordinate decimals.\n"
-        "* **power_matrix**: Localized kinetic pump output or thermal energy transport delta (MW).\n"
-        "* **spatial_displacement**: Multi-dimensional boundary or structural shear vector drift (km).\n"
-        "* **sensor_id** (optional): Per-node identifier; known IDs auto-resolve to domain presets."
-    )
+    if resolved_profile == "AI_HOMEOSTASIS":
+        st.info(AI_HOMEOSTASIS_COLD_START)
+    else:
+        st.info(
+            f"🌐 SYSTEM READY FOR TELEMETRY INGESTION\n\n"
+            f"Sidebar workspace: **{selected_zone_label}** → `{resolved_profile}`\n\n"
+            "Upload a validated CSV (sample: `data/MACRO_SYSTEM_PLANETARY_STREAM.csv`) with these column headers:\n"
+            "* **observed_value**: High-resolution material titration or physical boundary coordinate decimals.\n"
+            "* **power_matrix**: Localized kinetic pump output or thermal energy transport delta (MW).\n"
+            "* **spatial_displacement**: Multi-dimensional boundary or structural shear vector drift (km).\n"
+            "* **sensor_id** (optional): Per-node identifier; known IDs auto-resolve to domain presets."
+        )

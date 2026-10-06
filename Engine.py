@@ -49,6 +49,16 @@ DOMAIN_PROFILES = {
         "shear_limit": 0.002,
         "energy_delta_limit": 0.05,
     },
+    # Soft fallback when PyTorch auditor is unavailable on the host (e.g. lean Railway image).
+    "AI_HOMEOSTASIS": {
+        "titration_ceiling": 1e-7,
+        "metastable_margin": 0.07,
+        "collapse_veto": 0.19,
+        "base_uncertainty": 0.05,
+        "primary_multiplier": 0.12,
+        "shear_limit": 1e9,
+        "energy_delta_limit": 1e9,
+    },
 }
 
 

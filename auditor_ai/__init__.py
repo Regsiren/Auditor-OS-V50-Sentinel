@@ -12,6 +12,7 @@ from auditor_ai.sentinel_engine import (
     PhaseState,
     SentinelActivationAuditor,
     StepAuditResult,
+    analyze_activation_dataframe,
 )
 
 __all__ = [
@@ -21,6 +22,7 @@ __all__ = [
     "PhaseState",
     "SentinelActivationAuditor",
     "StepAuditResult",
+    "analyze_activation_dataframe",
 ]
 
 __version__ = "0.1.0"

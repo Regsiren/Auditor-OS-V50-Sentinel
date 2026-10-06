@@ -235,3 +235,99 @@ class SentinelActivationAuditor(nn.Module):
             "phase_state": phase.value,
             "topological_veto": phase == PhaseState.TOPOLOGICAL_VETO,
         }
+
+
+def analyze_activation_dataframe(
+    df_raw: "pd.DataFrame",
+    *,
+    value_col: str = "observed_value",
+    profile_name: str = "AI_HOMEOSTASIS",
+    rolling_window: int = DEFAULT_ROLLING_WINDOW,
+    omega_deviation_scale: float = DEFAULT_OMEGA_SCALE,
+) -> dict:
+    """
+    Run :class:`SentinelActivationAuditor` over a tabular activation stream.
+
+    Expects a column of scalar residual / hidden-state coordinates (default
+    ``observed_value``). Returns an Engine-compatible report dict so Streamlit
+    and `.sent` minting can reuse the same display / attestation path.
+    """
+    import pandas as pd  # local import keeps module import light for torch-only hosts
+
+    if value_col not in df_raw.columns:
+        raise ValueError(f"Activation stream missing required column '{value_col}'")
+
+    df = df_raw.copy().reset_index(drop=True)
+    auditor = SentinelActivationAuditor(
+        rolling_window=rolling_window,
+        omega_deviation_scale=omega_deviation_scale,
+    )
+
+    accelerations: List[float] = []
+    fatigues: List[float] = []
+    omegas: List[float] = []
+    breaches: List[bool] = []
+    last_result: Optional[StepAuditResult] = None
+
+    for raw in df[value_col].tolist():
+        tensor = torch.tensor([float(raw)], dtype=torch.float32)
+        result = auditor.forward(tensor)
+        accelerations.append(result.acceleration)
+        fatigues.append(result.fatigue_coefficient)
+        omegas.append(result.omega_t)
+        breaches.append(result.titration_breach)
+        last_result = result
+
+    df["kinetic_acceleration"] = accelerations
+    df["fatigue_coefficient"] = fatigues
+    df["omega_t"] = omegas
+    df["kinetic_breach"] = breaches
+
+    if last_result is None:
+        omega_final = BASE_OMEGA
+        fc_final = 0.0
+        phase = PhaseState.HOMEOSTATIC
+        breach_count = 0
+        veto = False
+    else:
+        omega_final = float(last_result.omega_t)
+        fc_final = float(last_result.fatigue_coefficient)
+        phase = last_result.phase_state
+        breach_count = int(sum(breaches))
+        veto = bool(last_result.topological_veto)
+
+    metastable = phase == PhaseState.METASTABLE
+    if omega_final >= TOPOLOGICAL_VETO and fc_final > 0.0:
+        rul_steps = 0.0
+    elif fc_final > 0.0 and omega_final < TOPOLOGICAL_VETO:
+        rul_steps = max(0.0, (TOPOLOGICAL_VETO - omega_final) / (fc_final + 1e-12))
+    else:
+        rul_steps = float("inf")
+
+    verdict = "FAIL" if veto else "PASS"
+    v4_meta = {
+        "cumulative_entropy": round(omega_final, 6),
+        "fatigue_gradient_fc": round(fc_final, 8),
+        "remaining_useful_life_periods": round(rul_steps, 2)
+        if rul_steps != float("inf")
+        else "NOMINAL / STABLE",
+        "total_kinetic_breaches": breach_count,
+        "max_observed_jitter": 0.0,
+        "verdict": verdict,
+        "phase_label": phase.value,
+        "stalled_zone": metastable,
+        "quench_kinetic_veto": veto,
+        "domain_id": profile_name,
+        "profile_name": profile_name,
+        "state_coordinate": "Omega_t",
+    }
+
+    return {
+        "verdict": verdict,
+        "phi_current": omega_final,  # App fleet ribbon uses this key; value is Ω_t for AI
+        "fc_gradient": fc_final,
+        "remaining_useful_life_steps": rul_steps,
+        "system_phase": phase.value,
+        "v4_meta": v4_meta,
+        "processed_df": df,
+    }
