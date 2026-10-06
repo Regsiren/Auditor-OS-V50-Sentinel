@@ -4,6 +4,14 @@ PyTorch residual-stream auditor for AI Homeostasis (Pillar I).
 Implements the V50-S scale-invariant observer over latent activation
 coordinates θ_t, producing the State Uncertainty Coordinate Ω_t and
 enforcing Homeostatic / Metastable / Topological Veto phase gates.
+
+Note: Omega_t (Ω_t) represents the Constructed State Uncertainty Coordinate for
+cognitive/neural activation space (incorporating rolling fatigue F_c), extending
+the baseline physical strain coordinate (Phi / Φ) used in physical telemetry
+engines (`Engine.py`). The phase gates (0.07 / 0.19) are shared; the coordinate
+construction differs: Φ is primarily cumulative deviation (plus shear/energy
+floors), while Ω_t explicitly folds the rolling fatigue term into the trajectory
+metric for residual-stream auditing.
 """
 
 from __future__ import annotations
@@ -53,13 +61,18 @@ class SentinelActivationAuditor(nn.Module):
     Stateless-per-call observer that tracks residual-stream activation
     trajectories through finite-difference kinetic acceleration.
 
+    Note: Omega_t represents the Constructed State Uncertainty Coordinate for
+    cognitive/neural activation space (incorporating rolling fatigue F_c),
+    extending the baseline physical strain coordinate (Phi) used in physical
+    telemetry engines.
+
     Mathematical pipeline
     ---------------------
     1. Velocity:        θ̇_t  = θ_t − θ_{t−1}
     2. Acceleration:    θ̈_t  = θ̇_t − θ̇_{t−1}   (= d²θ/dt² under Δt = 1)
     3. Titration:       |J_τ| = |θ̈_t|  >  ε      (ε = 1×10⁻⁷)
     4. Fatigue F_c:     rolling mean of |θ̈| over T steps
-    5. State Ω_t:       Ω₀ + α · max|θ_k − θ₀| + β · F_c
+    5. State Ω_t:       Ω₀ + α · max|θ_k − θ₀| + F_c
     6. Phase gates:     Homeostatic / Metastable / Topological Veto
     """
 

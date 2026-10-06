@@ -185,6 +185,13 @@ Kernel interceptor architecture (when $\Omega_{\text{final}} \ge 0.19$): [`spec/
    python evaluate_corpus.py
    ```
 
+   AI Homeostasis residual-stream demos (requires `pip install -r requirements-ai.txt`):
+   ```bash
+   python examples/demo_residual_stream.py
+   python examples/demo_huggingface_hook.py
+   ```
+   The Hugging Face hook demo intercepts a real (or offline-fallback) model residual stream at transformer block index 5 / layer 6 and prints per-step $\Omega_t$, $J_\tau$, and phase state.
+
 4. **Launch the Operations Interface:**
    - **Hosted:** [sentinel.thohatventures.com](https://sentinel.thohatventures.com)
    - **Local development:**
