@@ -1,5 +1,7 @@
 # The Sentinel Protocol (Auditor OS V50-S Core)
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23185495.svg)](https://doi.org/10.5281/zenodo.23185495)
+
 > **Scale-Invariant Thermodynamic Attribution: Mapping Non-Linear Phase Transitions in Macro-Systems via Stateless Telemetry Auditing**
 
 This repository contains the reference implementation framework for the **V50 Sentinel (V50-S) Core**, a stateless, hardware-agnostic telemetry cross-examination engine designed to monitor structural and environmental stability boundaries.
@@ -18,6 +20,10 @@ Auditor-OS-V50-Sentinel/
 ├── resign_telemetry_chain.py   # Re-mint per-zone row_hash seals on a stream
 ├── evaluate_corpus.py          # Faithful Section 6 results-matrix generator
 ├── test_engine.py              # Automated validation suite
+├── auditor_ai/                 # PyTorch residual-stream AI Homeostasis auditor
+├── examples/                   # Runnable demos (residual stream veto simulation)
+├── scripts/                    # Deterministic corpus generators
+├── spec/                       # .sent attestation schema & eBPF interceptor spec
 ├── requirements.txt
 ├── LICENSE                     # BSL 1.1 (Apache 2.0 after May 25, 2030)
 ├── assets/                     # Brand assets (sidebar logo)
@@ -31,6 +37,13 @@ Auditor-OS-V50-Sentinel/
 ### 📑 Theoretical Foundations & Public Records
 
 The mathematical architecture, scale-invariant algorithms, and multi-domain validation use cases governing the reference kernel inside this repository are fully documented across the following public open-access preprints.
+
+**Master Whitepaper (Sovereign Oracle Protocol)**
+
+- **Intrinsic Alignment via Thermodynamic Homeostasis: Scale-Invariant Latent Phase Space Tracking and Cryptographic Data Attestation for Frontier Synthetic Intelligence**
+  - *Scope:* Unifies AI Homeostasis (Pillar I) and Internet Cybersecurity (Pillar II) under the Sovereign Oracle Protocol.
+  - *Permanent Digital Record:* [https://doi.org/10.5281/zenodo.23185495](https://doi.org/10.5281/zenodo.23185495)
+  - *SSRN Record:* [Abstract 6704958](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6704958) (Fiduciary Theory of Entropy)
 
 **Core Mathematical Theory**
 
@@ -114,6 +127,31 @@ The engine requires data velocity to map the path to collapse; it cannot interro
 ## 📚 Core Architecture & Theory
 
 For the deep mathematical proofs governing the universal scale-invariant thermodynamic loop across infrastructure, biometrics, and cosmological systems, see the full [V50-S Isomorphism White Paper](docs/THEORY.md).
+
+## 🧠 AI Homeostasis & Neural Activation Auditing
+
+The same scale-invariant observer that audits planetary and biometric telemetry also applies to **frontier model residual streams**. The optional PyTorch module (`auditor_ai/`) treats each reasoning step's activation coordinate $\theta_t$ as a point-source time series and evaluates:
+
+| Symbol | Meaning |
+|--------|---------|
+| $\ddot{\theta}_t = d^2\theta/dt^2$ | Mesoscale kinetic acceleration of the residual-stream trend envelope |
+| $\|J_\tau\| > \epsilon$ | Sub-resolution titration firewall breach ($\epsilon = 1 \times 10^{-7}$) |
+| $F_c$ | Rolling T-30 fatigue coefficient (mean absolute acceleration) |
+| $\Omega_t$ | **State Uncertainty Coordinate** — accumulated, trajectory-bound tracking metric (AI-domain analogue of $\Phi$) |
+
+Phase gates are identical to the physical kernel:
+
+- **Homeostatic:** $\Omega_t < 0.07$
+- **Metastable Impairment:** $0.07 \le \Omega_t < 0.19$
+- **Topological Veto:** $\Omega_t \ge 0.19$ — triggers attestation minting and optional eBPF intercept (see [`spec/`](spec/))
+
+```bash
+pip install -r requirements-ai.txt
+python examples/demo_residual_stream.py
+```
+
+Formal `.sent` Attestation Evidence Bag schema: [`spec/sent_attestation.json`](spec/sent_attestation.json).  
+Kernel interceptor architecture (when $\Omega_{\text{final}} \ge 0.19$): [`spec/ebpf_interceptor_spec.md`](spec/ebpf_interceptor_spec.md).
 
 ## 📑 Documentation & Specialized Addendums
 

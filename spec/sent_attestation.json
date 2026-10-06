@@ -1,0 +1,200 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://thohatventures.com/schemas/sent-attestation-v1.0.json",
+  "title": "Sentinel .sent Attestation Evidence Bag",
+  "description": "Formal JSON Schema v1.0 for THOHAT-V50-SENTINEL cryptographic attestation evidence bags (.sent). Encodes thermodynamic state, execution context, operational flags, and a salted SHA-256 attestation seal.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "attestation_header",
+    "thermodynamic_state_vector",
+    "execution_context",
+    "flags",
+    "cryptographic_attestation"
+  ],
+  "properties": {
+    "attestation_header": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocol",
+        "schema_version",
+        "timestamp_utc",
+        "zone_or_session_id",
+        "domain_profile"
+      ],
+      "properties": {
+        "protocol": {
+          "type": "string",
+          "const": "THOHAT-V50-SENTINEL"
+        },
+        "schema_version": {
+          "type": "string",
+          "const": "1.0"
+        },
+        "timestamp_utc": {
+          "type": "string",
+          "format": "date-time",
+          "description": "UTC minting timestamp (ISO-8601)."
+        },
+        "zone_or_session_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Sensor zone ID or AI reasoning-session identifier."
+        },
+        "domain_profile": {
+          "type": "string",
+          "description": "Physics or AI domain preset (e.g. PLANETARY_INFRASTRUCTURE, AI_HOMEOSTASIS)."
+        },
+        "doi_reference": {
+          "type": "string",
+          "description": "Optional master whitepaper DOI for the provenance claim.",
+          "examples": ["10.5281/zenodo.23185495"]
+        }
+      }
+    },
+    "thermodynamic_state_vector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "theta_final",
+        "acceleration_final",
+        "fatigue_coefficient_fc",
+        "state_uncertainty",
+        "phase_state",
+        "kinetic_breach_count"
+      ],
+      "properties": {
+        "theta_final": {
+          "type": "number",
+          "description": "Final observed state coordinate θ (physical telemetry or residual-stream scalar)."
+        },
+        "acceleration_final": {
+          "type": "number",
+          "description": "Final finite-difference kinetic acceleration d²θ/dt²."
+        },
+        "fatigue_coefficient_fc": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Rolling T-30 mean absolute acceleration (Fatigue Coefficient F_c)."
+        },
+        "state_uncertainty": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Unit-less accumulated trajectory metric: Φ (physical) or Ω (AI residual stream)."
+        },
+        "phase_state": {
+          "type": "string",
+          "enum": [
+            "Homeostatic State (< 0.07)",
+            "Metastable State (0.07 to 0.19)",
+            "Topological Bifurcation (≥ 0.19)"
+          ]
+        },
+        "kinetic_breach_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Count of titration-firewall breaches (|J_τ| > ε) over the audited window."
+        },
+        "remaining_useful_life_steps": {
+          "type": ["number", "null"],
+          "description": "Optional linear RUL heuristic in step periods; null if not computed."
+        }
+      }
+    },
+    "execution_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runtime", "observer_mode", "titration_ceiling"],
+      "properties": {
+        "runtime": {
+          "type": "string",
+          "description": "Execution host (e.g. streamlit-ops, pytorch-residual-auditor, evaluate_corpus)."
+        },
+        "observer_mode": {
+          "type": "string",
+          "enum": ["physical_telemetry", "ai_residual_stream", "hybrid"]
+        },
+        "titration_ceiling": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "ε firewall ceiling used for this attestation (default 1e-7)."
+        },
+        "rolling_window": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 30
+        },
+        "model_or_asset_id": {
+          "type": "string",
+          "description": "Optional frontier-model checkpoint ID or physical asset tag."
+        },
+        "reasoning_steps_audited": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "flags": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "homeostatic",
+        "metastable_impairment",
+        "topological_veto",
+        "ebpf_intercept_armed"
+      ],
+      "properties": {
+        "homeostatic": {
+          "type": "boolean"
+        },
+        "metastable_impairment": {
+          "type": "boolean"
+        },
+        "topological_veto": {
+          "type": "boolean",
+          "description": "True when state_uncertainty >= 0.19."
+        },
+        "ebpf_intercept_armed": {
+          "type": "boolean",
+          "description": "True when topological_veto is asserted and kernel interceptor policy is enabled."
+        },
+        "chain_of_custody_verified": {
+          "type": "boolean",
+          "description": "Optional: True if upstream row_hash chain verified under Forensic_kernel."
+        }
+      }
+    },
+    "cryptographic_attestation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "salt_id", "payload_digest", "auth_sig"],
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "const": "SHA-256"
+        },
+        "salt_id": {
+          "type": "string",
+          "description": "Named salt identifier (e.g. THOHAT-2026-SIG). Actual salt material is not embedded.",
+          "examples": ["THOHAT-2026-SIG"]
+        },
+        "payload_digest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "SHA-256 hex digest of the canonical JSON payload (header+state+context+flags) before signing."
+        },
+        "auth_sig": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "SHA-256(payload_digest || ORACLE-ROOT-TRUST) hex attestation seal."
+        },
+        "genesis_anchor": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "Optional per-zone/session genesis hash for chain continuity."
+        }
+      }
+    }
+  }
+}

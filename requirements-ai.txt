@@ -1,0 +1,4 @@
+# Optional extras for AI Homeostasis residual-stream auditing.
+# Install alongside the core requirements:
+#   pip install -r requirements.txt -r requirements-ai.txt
+torch>=2.2.0
