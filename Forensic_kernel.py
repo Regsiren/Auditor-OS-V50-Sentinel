@@ -99,16 +99,124 @@ def verify_telemetry_chain(df: pd.DataFrame, salt: str = DEFAULT_SALT) -> bool:
     return True
 
 
-def mint_sentinel_evidence_bag(analysis_report: dict, zone_name: str) -> str:
-    """Compile signed processing metadata into a standalone, local verification bag."""
-    payload = {
+def _normalize_phase_state(phase_label: str, state_uncertainty: float) -> str:
+    """Map engine phase labels to schema v1.0 phase_state enum values."""
+    label = (phase_label or "").lower()
+    if "bifurcation" in label or "veto" in label or state_uncertainty >= 0.19:
+        return "Topological Bifurcation (≥ 0.19)"
+    if "metastable" in label or state_uncertainty >= 0.07:
+        return "Metastable State (0.07 to 0.19)"
+    return "Homeostatic State (< 0.07)"
+
+
+def mint_sentinel_evidence_bag(
+    analysis_report: dict,
+    zone_name: str,
+    *,
+    runtime: str = "streamlit-ops",
+    observer_mode: str = "physical_telemetry",
+    titration_ceiling: float = 1e-7,
+    rolling_window: int = 30,
+    ebpf_intercept_armed: bool = False,
+    chain_of_custody_verified: bool | None = None,
+    doi_reference: str = "10.5281/zenodo.23185495",
+) -> str:
+    """
+    Compile a schema v1.0 `.sent` Attestation Evidence Bag (spec/sent_attestation.json).
+
+    Emits attestation_header, thermodynamic_state_vector, execution_context, flags,
+    and cryptographic_attestation blocks. The auth_sig is
+    SHA-256(payload_digest || ORACLE-ROOT-TRUST) where payload_digest hashes the
+    four unsigned blocks in canonical JSON order.
+    """
+    meta = analysis_report.get("v4_meta", {}) or {}
+    zone_id = zone_name.strip().upper()
+
+    state_uncertainty = float(
+        analysis_report.get("phi_current", meta.get("cumulative_entropy", 0.05))
+    )
+    fc = float(analysis_report.get("fc_gradient", meta.get("fatigue_gradient_fc", 0.0)))
+    phase_label = str(analysis_report.get("system_phase", meta.get("phase_label", "")))
+    phase_state = _normalize_phase_state(phase_label, state_uncertainty)
+
+    rul_raw = analysis_report.get("remaining_useful_life_steps", meta.get("remaining_useful_life_periods"))
+    if rul_raw is None or rul_raw == float("inf") or rul_raw == "NOMINAL / STABLE":
+        rul_steps = None
+    else:
+        try:
+            rul_steps = float(rul_raw)
+        except (TypeError, ValueError):
+            rul_steps = None
+
+    topological_veto = bool(meta.get("quench_kinetic_veto", state_uncertainty >= 0.19))
+    metastable = bool(meta.get("stalled_zone", 0.07 <= state_uncertainty < 0.19))
+    homeostatic = not topological_veto and not metastable
+
+    processed_df = analysis_report.get("processed_df")
+    theta_final = 0.0
+    acceleration_final = 0.0
+    if processed_df is not None and len(processed_df) > 0:
+        if "observed_value" in processed_df.columns:
+            theta_final = float(processed_df["observed_value"].iloc[-1])
+        if "kinetic_acceleration" in processed_df.columns:
+            acceleration_final = float(processed_df["kinetic_acceleration"].iloc[-1])
+
+    domain_profile = str(meta.get("profile_name") or meta.get("domain_id") or "PLANETARY_INFRASTRUCTURE")
+    timestamp_utc = pd.Timestamp.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    attestation_header = {
         "protocol": "THOHAT-V50-SENTINEL",
-        "timestamp_utc": pd.Timestamp.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
-        "zone_identifier": zone_name.strip().upper(),
-        "forensic_metadata": analysis_report.get("v4_meta", {}),
+        "schema_version": "1.0",
+        "timestamp_utc": timestamp_utc,
+        "zone_or_session_id": zone_id,
+        "domain_profile": domain_profile,
+        "doi_reference": doi_reference,
     }
+    thermodynamic_state_vector = {
+        "theta_final": theta_final,
+        "acceleration_final": acceleration_final,
+        "fatigue_coefficient_fc": fc,
+        "state_uncertainty": state_uncertainty,
+        "phase_state": phase_state,
+        "kinetic_breach_count": int(meta.get("total_kinetic_breaches", 0)),
+        "remaining_useful_life_steps": rul_steps,
+    }
+    execution_context = {
+        "runtime": runtime,
+        "observer_mode": observer_mode,
+        "titration_ceiling": float(titration_ceiling),
+        "rolling_window": int(rolling_window),
+        "model_or_asset_id": zone_id,
+        "reasoning_steps_audited": int(len(processed_df)) if processed_df is not None else 0,
+    }
+    flags = {
+        "homeostatic": homeostatic,
+        "metastable_impairment": metastable,
+        "topological_veto": topological_veto,
+        "ebpf_intercept_armed": bool(ebpf_intercept_armed and topological_veto),
+    }
+    if chain_of_custody_verified is not None:
+        flags["chain_of_custody_verified"] = bool(chain_of_custody_verified)
 
-    raw_sig = json.dumps(payload, sort_keys=True) + "ORACLE-ROOT-TRUST"
-    payload["auth_sig"] = hashlib.sha256(raw_sig.encode("utf-8")).hexdigest()
+    unsigned_payload = {
+        "attestation_header": attestation_header,
+        "thermodynamic_state_vector": thermodynamic_state_vector,
+        "execution_context": execution_context,
+        "flags": flags,
+    }
+    payload_digest = hashlib.sha256(
+        json.dumps(unsigned_payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+    auth_sig = hashlib.sha256(f"{payload_digest}ORACLE-ROOT-TRUST".encode("utf-8")).hexdigest()
 
-    return json.dumps(payload, indent=4)
+    bag = {
+        **unsigned_payload,
+        "cryptographic_attestation": {
+            "algorithm": "SHA-256",
+            "salt_id": DEFAULT_SALT,
+            "payload_digest": payload_digest,
+            "auth_sig": auth_sig,
+            "genesis_anchor": genesis_hash(zone_id),
+        },
+    }
+    return json.dumps(bag, indent=4)

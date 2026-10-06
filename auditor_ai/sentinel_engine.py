@@ -154,6 +154,7 @@ class SentinelActivationAuditor(nn.Module):
         titration_breach = abs_accel > self.titration_ceiling
 
         self._abs_accel_window.append(abs_accel)
+        # Scale F_c once here; do not re-apply fatigue_scale inside Ω_t.
         fatigue_coefficient = (
             sum(self._abs_accel_window) / len(self._abs_accel_window)
         ) * self.fatigue_scale
@@ -166,7 +167,7 @@ class SentinelActivationAuditor(nn.Module):
         omega_t = (
             self.base_omega
             + (self._max_abs_deviation * self.omega_deviation_scale)
-            + (fatigue_coefficient * self.fatigue_scale)
+            + fatigue_coefficient
         )
 
         phase_state = self._classify(omega_t)
@@ -201,15 +202,16 @@ class SentinelActivationAuditor(nn.Module):
             }
 
         # Recompute final Ω from retained state without mutating buffers.
+        # Apply fatigue_scale once (same as forward()).
         fatigue = (
-            sum(self._abs_accel_window) / len(self._abs_accel_window)
+            (sum(self._abs_accel_window) / len(self._abs_accel_window)) * self.fatigue_scale
             if self._abs_accel_window
             else 0.0
         )
         omega_t = (
             self.base_omega
             + (self._max_abs_deviation * self.omega_deviation_scale)
-            + (fatigue * self.fatigue_scale)
+            + fatigue
         )
         phase = self._classify(omega_t)
         return {

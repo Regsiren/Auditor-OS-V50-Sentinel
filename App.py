@@ -159,6 +159,7 @@ if uploaded_file is not None:
     st.success(f"Telemetry ingested — workspace target: {selected_zone_label} (`{resolved_profile}`)")
 
     # Active chain of custody validation check
+    is_chain_valid = None
     with st.sidebar:
         if "row_hash" in df_stream.columns:
             if "sensor_id" in df_stream.columns:
@@ -275,14 +276,24 @@ if uploaded_file is not None:
         
     with tab2:
         st.subheader("Cryptographic Audit Attestation Seals")
-        st.markdown("Select a node to mint an immutable, standalone verification metadata package:")
+        st.markdown(
+            "Select a node to mint an immutable **schema v1.0** `.sent` Attestation Evidence Bag "
+            "(`attestation_header`, `thermodynamic_state_vector`, `execution_context`, `flags`, "
+            "`cryptographic_attestation`):"
+        )
         
         target_zone_bag = st.selectbox("Select Node for Export:", zone_labels, key="bag_export_sel")
         selected_report = all_reports[target_zone_bag]
         
-        evidence_string = kernel.mint_sentinel_evidence_bag(selected_report, target_zone_bag)
+        evidence_string = kernel.mint_sentinel_evidence_bag(
+            selected_report,
+            target_zone_bag,
+            runtime="streamlit-ops",
+            observer_mode="physical_telemetry",
+            chain_of_custody_verified=is_chain_valid,
+        )
         
-        st.text_area("Signed `.sent` Evidence Block Content:", evidence_string, height=350)
+        st.text_area("Signed `.sent` Evidence Block Content (schema v1.0):", evidence_string, height=350)
         
         st.download_button(
             label=f"Export {target_zone_bag}.sent Evidence Bag",

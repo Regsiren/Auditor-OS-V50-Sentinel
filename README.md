@@ -19,12 +19,15 @@ Auditor-OS-V50-Sentinel/
 ├── Biometric_Synthesizer.py    # BIOMETRIC_SENTINEL demo stream generator
 ├── resign_telemetry_chain.py   # Re-mint per-zone row_hash seals on a stream
 ├── evaluate_corpus.py          # Faithful Section 6 results-matrix generator
-├── test_engine.py              # Automated validation suite
+├── test_engine.py              # Automated validation suite (physical kernel)
 ├── auditor_ai/                 # PyTorch residual-stream AI Homeostasis auditor
 ├── examples/                   # Runnable demos (residual stream veto simulation)
 ├── scripts/                    # Deterministic corpus generators
 ├── spec/                       # .sent attestation schema & eBPF interceptor spec
-├── requirements.txt
+├── tests/                      # Optional AI module tests (soft-skip without torch)
+├── requirements.txt            # Core runtime dependencies
+├── requirements-ai.txt         # Optional PyTorch extras for AI Homeostasis
+├── .python-version             # Railway / Railpack Python pin (3.13.13)
 ├── LICENSE                     # BSL 1.1 (Apache 2.0 after May 25, 2030)
 ├── assets/                     # Brand assets (sidebar logo)
 ├── data/                       # Sample & generated telemetry streams
@@ -43,7 +46,6 @@ The mathematical architecture, scale-invariant algorithms, and multi-domain vali
 - **Intrinsic Alignment via Thermodynamic Homeostasis: Scale-Invariant Latent Phase Space Tracking and Cryptographic Data Attestation for Frontier Synthetic Intelligence**
   - *Scope:* Unifies AI Homeostasis (Pillar I) and Internet Cybersecurity (Pillar II) under the Sovereign Oracle Protocol.
   - *Permanent Digital Record:* [https://doi.org/10.5281/zenodo.23185495](https://doi.org/10.5281/zenodo.23185495)
-  - *SSRN Record:* [Abstract 6704958](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6704958) (Fiduciary Theory of Entropy)
 
 **Core Mathematical Theory**
 
@@ -119,8 +121,11 @@ The engine requires data velocity to map the path to collapse; it cannot interro
 ## 2. Core Repository Architecture
 
 * `Engine.py`: The stateless fiduciary kernel executing the second-derivative acceleration tracking, rolling fatigue integrals, and boundary phase state evaluations.
-* `Forensic_kernel.py`: Handles the local cryptographic chain-of-custody validation layer via sequential, state-less SHA-256 row-pair hashing.
+* `Forensic_kernel.py`: Handles the local cryptographic chain-of-custody validation layer via sequential, state-less SHA-256 row-pair hashing, and mints schema v1.0 `.sent` attestation bags.
 * `App.py`: Streamlit operations interface with the **Sentinel Domain Workspace** (zone → physics preset routing) and multi-zone phase space portraits with `.sent` evidence export.
+* `auditor_ai/`: Optional PyTorch residual-stream auditor (`SentinelActivationAuditor`) producing the AI-domain State Uncertainty Coordinate $\Omega_t$.
+* `spec/`: Formal `.sent` JSON Schema v1.0 and the eBPF Topological Veto interceptor design note.
+* `scripts/`: Deterministic corpus generators (e.g. maritime stream relabel + seal).
 * `DOMAIN_PROFILES` (`Engine.py`): `PLANETARY_INFRASTRUCTURE`, `BIOMETRIC_SENTINEL`, `QUANTUM_COHERENCE` — scale-invariant gates with domain-specific shear and energy limits.
 * `Data_Synthesizer.py`: An empirical data synthesizer that seeds a 100-year multi-zone climate/structural dataset profile (AMOC decay lifecycle vs. control baseline) embedded with sub-resolution anomalies.
 

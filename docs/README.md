@@ -5,6 +5,16 @@
 | [THEORY.md](THEORY.md) | Cross-domain mathematical isomorphism white paper (biometric & gravothermal extensions) |
 | [APPENDIX_B_BIOMETRIC_SENTINEL.md](APPENDIX_B_BIOMETRIC_SENTINEL.md) | Domain Beta developer onboarding — biological telemetry insulation |
 
+## Public Records & AI Homeostasis
+
+| Resource | Description |
+|----------|-------------|
+| [Master Whitepaper (Zenodo DOI 10.5281/zenodo.23185495)](https://doi.org/10.5281/zenodo.23185495) | Intrinsic Alignment via Thermodynamic Homeostasis — Dual-Pillar Sovereign Oracle Protocol |
+| [`auditor_ai/`](../auditor_ai/) | PyTorch residual-stream AI Homeostasis auditor (`SentinelActivationAuditor`, $\Omega_t$ gating) |
+| [`spec/sent_attestation.json`](../spec/sent_attestation.json) | Formal JSON Schema v1.0 for `.sent` Attestation Evidence Bags |
+| [`spec/ebpf_interceptor_spec.md`](../spec/ebpf_interceptor_spec.md) | Linux eBPF XDP_DROP / socket-sever architecture for $\Omega_{\text{final}} \ge 0.19$ |
+| [`examples/demo_residual_stream.py`](../examples/demo_residual_stream.py) | 30-step residual-stream demo with Topological Veto at step 26 |
+
 ## 🚀 Future Development & Call to Contribution
 
 The Auditor OS V50 Sentinel Core Protocol represents a lean, production-grade interface specification for scale-invariant thermodynamic solvency tracking. To maintain our commitment to algorithmic agility and minimal dependency overhead, the core architecture enforces structured baseline constraints. 
