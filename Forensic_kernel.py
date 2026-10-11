@@ -238,10 +238,9 @@ def sign_ed25519_canonical_hash(
     hmac_key: bytes | None = None,
 ) -> dict[str, str | None]:
     """
-    Sign a canonical row hash with Ed25519 (PyNaCl or cryptography).
-
-    Falls back to HMAC-SHA256 when Ed25519 backends are unavailable — suitable
-    for CI / lean hosts; production HSM wiring replaces the software key path.
+    Sign a canonical row hash with an Ed25519 Hardware-Ready Software Signature
+    (HMAC/Ed25519 pure-Python & cryptography module fallback; cloud HSM key
+    injection supported via ``private_key_bytes``).
 
     Returns
     -------
@@ -273,8 +272,9 @@ def sign_ed25519_canonical_hash(
     try:
         from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
-        if private_key_bytes is not None and len(private_key_bytes) == 32:
-            private_key = Ed25519PrivateKey.from_private_bytes(private_key_bytes)
+        if private_key_bytes is not None:
+            seed = private_key_bytes if len(private_key_bytes) == 32 else hashlib.sha256(private_key_bytes).digest()
+            private_key = Ed25519PrivateKey.from_private_bytes(seed)
         else:
             private_key = Ed25519PrivateKey.generate()
         public_key = private_key.public_key()
@@ -380,3 +380,86 @@ def mint_sentinel_v10_bag(
 def mint_sentinel_v10_bag_json(**kwargs: Any) -> str:
     """JSON-serialized Dual-Pillar v1.0 bag (pretty-printed)."""
     return json.dumps(mint_sentinel_v10_bag(**kwargs), indent=4)
+
+
+PHASE_V10_NOMINAL = "Nominal / Homeostatic (< 0.07 Ω)"
+PHASE_V10_METASTABLE = "Metastable Impairment (0.07 to 0.19 Ω)"
+PHASE_V10_VETO = "Topological Veto (≥ 0.19 Ω)"
+
+
+def phase_boundary_from_omega(omega: float) -> str:
+    """Map Ω/Φ to Dual-Pillar schema v1.0 ``phase_boundary_state`` enum."""
+    value = float(omega)
+    if value >= 0.19:
+        return PHASE_V10_VETO
+    if value >= 0.07:
+        return PHASE_V10_METASTABLE
+    return PHASE_V10_NOMINAL
+
+
+def mint_sentinel_v10_from_report(
+    analysis_report: dict,
+    zone_name: str,
+    *,
+    model_identifier: str | None = None,
+    sequence_step: int | None = None,
+    prev_bag_hash: str | None = None,
+    layer_depth_index: int = 0,
+    private_key_bytes: bytes | None = None,
+    hmac_key: bytes | None = None,
+    doi_reference: str = "10.5281/zenodo.23185495",
+) -> dict[str, Any]:
+    """
+    Mint a schema-conformant Dual-Pillar v1.0 bag from an Engine / AI report dict.
+
+    Used by the Streamlit portal and automatic Topological Veto attestation.
+    """
+    meta = analysis_report.get("v4_meta", {}) or {}
+    omega = float(analysis_report.get("phi_current", meta.get("cumulative_entropy", 0.05)))
+    fc = max(0.0, float(analysis_report.get("fc_gradient", meta.get("fatigue_gradient_fc", 0.0))))
+
+    j_tau = max(0.0, float(meta.get("max_observed_jitter", 0.0)))
+    processed_df = analysis_report.get("processed_df")
+    steps = 0
+    if processed_df is not None and len(processed_df) > 0:
+        steps = int(len(processed_df))
+        if "a_orthogonal" in processed_df.columns:
+            j_tau = abs(float(processed_df["a_orthogonal"].iloc[-1]))
+        elif "kinetic_acceleration" in processed_df.columns:
+            j_tau = abs(float(processed_df["kinetic_acceleration"].iloc[-1]))
+
+    phase_label = str(analysis_report.get("system_phase", meta.get("phase_label", "")))
+    if phase_label in (PHASE_V10_NOMINAL, PHASE_V10_METASTABLE, PHASE_V10_VETO):
+        phase = phase_label
+    else:
+        phase = phase_boundary_from_omega(omega)
+
+    observer = str(meta.get("observer_mode") or "")
+    profile = str(meta.get("profile_name") or meta.get("domain_id") or "")
+    if model_identifier is None:
+        if observer == "aria_adaptive" or "ARIA" in observer.upper():
+            model_identifier = "aria-adaptive-observer"
+        elif profile == "AI_HOMEOSTASIS" or "ai" in observer.lower():
+            model_identifier = "baseline-sentinel-observer"
+        else:
+            model_identifier = f"physical:{zone_name.strip().upper()}"
+
+    return mint_sentinel_v10_bag(
+        state_coordinate_omega=omega,
+        sub_resolution_jitter_j_tau=j_tau,
+        rolling_fatigue_fc=fc,
+        phase_boundary_state=phase,
+        sequence_step=int(sequence_step if sequence_step is not None else max(0, steps - 1)),
+        prev_bag_hash=prev_bag_hash,
+        model_identifier=model_identifier,
+        layer_depth_index=int(layer_depth_index),
+        zone_or_session_id=zone_name,
+        doi_reference=doi_reference,
+        private_key_bytes=private_key_bytes,
+        hmac_key=hmac_key,
+    )
+
+
+def mint_sentinel_v10_from_report_json(analysis_report: dict, zone_name: str, **kwargs: Any) -> str:
+    """JSON-serialized Dual-Pillar v1.0 bag minted from an analysis report."""
+    return json.dumps(mint_sentinel_v10_from_report(analysis_report, zone_name, **kwargs), indent=4)

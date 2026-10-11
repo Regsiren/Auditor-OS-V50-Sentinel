@@ -19,6 +19,7 @@ from auditor_ai.adaptive_engine import (
     AdaptivePhaseState,
     AdaptiveStepResult,
     ScaledAdaptiveSentinelAuditor,
+    analyze_adaptive_dataframe,
 )
 
 __all__ = [
@@ -32,6 +33,7 @@ __all__ = [
     "AdaptivePhaseState",
     "AdaptiveStepResult",
     "ScaledAdaptiveSentinelAuditor",
+    "analyze_adaptive_dataframe",
 ]
 
 __version__ = "0.2.0"

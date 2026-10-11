@@ -12,7 +12,7 @@ This repository contains the reference implementation framework for the **V50 Se
 
 Transport-layer encryption (TLS/HTTPS) secures the *pipe* — the channel between endpoints — but is silent about the *thermodynamic content* of the payload once it arrives. An adversarially drifted residual stream, a tampered SCADA frame, or a forged clearing instruction can all ride a perfectly valid TLS session.
 
-The Dual-Pillar Sovereign Oracle Protocol therefore attests **payload state**, not merely channel confidentiality. Each `.sent` evidence bag binds a State Uncertainty Coordinate ($\Omega_t$ / $\Phi$), sub-resolution jitter, and a canonical row hash under Ed25519 (HSM-ready; HMAC fallback on lean hosts). This is the information-theoretic complement to TLS: if a bit of systemic state is erased or rewritten, Landauer's Limit still applies —
+The Dual-Pillar Sovereign Oracle Protocol therefore attests **payload state**, not merely channel confidentiality. Each `.sent` evidence bag binds a State Uncertainty Coordinate ($\Omega_t$ / $\Phi$), sub-resolution jitter, and a canonical row hash under an **Ed25519 Hardware-Ready Software Signature (HMAC/Ed25519 pure-Python & cryptography module fallback; cloud HSM key injection supported).** This is the information-theoretic complement to TLS: if a bit of systemic state is erased or rewritten, Landauer's Limit still applies —
 
 $$E \ge k_B T \ln 2$$
 
@@ -151,7 +151,7 @@ For the deep mathematical proofs governing the universal scale-invariant thermod
 The same scale-invariant observer that audits planetary and biometric telemetry also applies to **frontier model residual streams**. Pillar I ships two layers:
 
 1. **Baseline auditor** (`auditor_ai/sentinel_engine.py`) — finite-difference $\ddot{\theta}$, titration firewall, rolling $F_c$, and State Uncertainty Coordinate $\Omega_t$.
-2. **ARIA adaptive engine** (`auditor_ai/adaptive_engine.py`) — dimension-scaled $\epsilon\sqrt{d}$, orthogonal shear decomposition ($a_\parallel$ / $a_\perp$), dynamic baseline annealing with anchor freeze, and dual-scale $\Omega_t$ (local divergence + macro migration + $F_c$).
+2. **ARIA adaptive engine** (`auditor_ai/adaptive_engine.py`) — dimension-scaled $\epsilon\sqrt{d}$, orthogonal shear decomposition ($a_\parallel$ / $a_\perp$), dynamic baseline annealing with anchor freeze, and dual-scale $\Omega_t$ (local divergence + macro migration + $F_c$). Selectable in the live portal under ZONE-07 as **ARIA Adaptive Observer**.
 
 | Symbol | Meaning |
 |--------|---------|
@@ -170,16 +170,16 @@ python examples/demo_huggingface_hook.py
 ```
 
 Full ARIA reviewer specification: [`docs/ARIA_TECHNICAL_ROADMAP.md`](docs/ARIA_TECHNICAL_ROADMAP.md).  
-Live dashboard workspace: **ZONE-07-RESIDUAL_STREAM (AI Latent Activation & LLM Homeostasis)**.
+Live dashboard workspace: **ZONE-07-RESIDUAL_STREAM (AI Latent Activation & LLM Homeostasis)** — Baseline Sentinel Observer or ARIA Adaptive Observer. Topological Veto ($\Omega \ge 0.19$) auto-mints a Dual-Pillar schema v1.0 `.sent` bag.
 
 ## Pillar II: Cryptographic Evidence Bags (`.sent` Schema v1.0 & ISO 20022 Mapping)
 
-Dual-Pillar Investor Brief bags contain exactly four blocks (see [`spec/sent_attestation.json`](spec/sent_attestation.json)):
+Dual-Pillar Investor Brief bags contain exactly four blocks (see [`spec/sent_attestation.json`](spec/sent_attestation.json)). The Streamlit portal exports these bags via `mint_sentinel_v10_from_report` / `mint_sentinel_v10_bag`:
 
 1. `attestation_header` — `protocol_version`, `timestamp_utc_ms`, `sequence_step`, `prev_bag_hash`, `crypto_seed_matrix`
-2. `thermodynamic_state_vector` — $\Omega_t$, $|J_\tau|$, $F_c$, phase boundary
+2. `thermodynamic_state_vector` — `state_coordinate_omega`, `sub_resolution_jitter_j_tau`, `rolling_fatigue_fc`, `phase_boundary_state`
 3. `execution_context` — model / process / layer / hardware node
-4. `cryptographic_attestation` — `canonical_row_hash`, Ed25519 signature (HMAC-SHA256 fallback)
+4. `cryptographic_attestation` — `canonical_row_hash`, Ed25519 Hardware-Ready Software Signature (HMAC/Ed25519 pure-Python & cryptography module fallback; cloud HSM key injection supported)
 
 ```bash
 python examples/demo_iso20022_bridge.py

@@ -12,7 +12,7 @@ import math
 from collections import deque
 from dataclasses import dataclass
 from enum import Enum
-from typing import Deque, Dict, List, Optional
+from typing import Deque, Dict, List, Optional, TYPE_CHECKING
 
 import torch
 import torch.nn as nn
@@ -23,6 +23,9 @@ from auditor_ai.sentinel_engine import (
     TITRATION_CEILING,
     TOPOLOGICAL_VETO,
 )
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 DEFAULT_ROLLING_WINDOW: int = 30
 DEFAULT_LOCAL_SCALE: float = 0.08
@@ -248,3 +251,115 @@ class ScaledAdaptiveSentinelAuditor(nn.Module):
             "fatigue_coefficient": fatigue,
             "d_model": self.d_model,
         }
+
+
+def analyze_adaptive_dataframe(
+    df_raw: "pd.DataFrame",
+    *,
+    value_col: str = "observed_value",
+    profile_name: str = "AI_HOMEOSTASIS",
+    d_model: int = 64,
+    rolling_window: int = DEFAULT_ROLLING_WINDOW,
+) -> dict:
+    """
+    Run :class:`ScaledAdaptiveSentinelAuditor` over a tabular activation stream.
+
+    Returns an Engine-compatible report dict so Streamlit and Dual-Pillar `.sent`
+    minting can reuse the same display / attestation path as the baseline auditor.
+    """
+    import pandas as pd  # local import keeps module import light for torch-only hosts
+
+    if value_col not in df_raw.columns:
+        raise ValueError(f"Activation stream missing required column '{value_col}'")
+
+    df = df_raw.copy().reset_index(drop=True)
+    auditor = ScaledAdaptiveSentinelAuditor(d_model=d_model, rolling_window=rolling_window)
+
+    accelerations: List[float] = []
+    fatigues: List[float] = []
+    omegas: List[float] = []
+    breaches: List[bool] = []
+    a_orthogonals: List[float] = []
+    a_tangentials: List[float] = []
+    lambda_ts: List[float] = []
+    frozen_flags: List[bool] = []
+    last_result: Optional[AdaptiveStepResult] = None
+
+    for raw in df[value_col].tolist():
+        tensor = torch.tensor([float(raw)], dtype=torch.float32)
+        result = auditor.forward(tensor)
+        accelerations.append(result.acceleration_norm)
+        fatigues.append(result.fatigue_coefficient)
+        omegas.append(result.omega_t)
+        breaches.append(result.titration_breach)
+        a_orthogonals.append(result.a_orthogonal)
+        a_tangentials.append(result.a_tangential)
+        lambda_ts.append(result.lambda_t)
+        frozen_flags.append(result.anchor_frozen)
+        last_result = result
+
+    df["kinetic_acceleration"] = accelerations
+    df["fatigue_coefficient"] = fatigues
+    df["omega_t"] = omegas
+    df["kinetic_breach"] = breaches
+    df["a_orthogonal"] = a_orthogonals
+    df["a_tangential"] = a_tangentials
+    df["lambda_t"] = lambda_ts
+    df["anchor_frozen"] = frozen_flags
+
+    if last_result is None:
+        omega_final = BASE_OMEGA
+        fc_final = 0.0
+        phase = AdaptivePhaseState.NOMINAL
+        breach_count = 0
+        veto = False
+        max_jitter = 0.0
+        anchor_frozen = False
+    else:
+        omega_final = float(last_result.omega_t)
+        fc_final = float(last_result.fatigue_coefficient)
+        phase = last_result.phase_state
+        breach_count = int(sum(breaches))
+        veto = bool(last_result.topological_veto)
+        max_jitter = float(max(a_orthogonals) if a_orthogonals else 0.0)
+        anchor_frozen = bool(last_result.anchor_frozen)
+
+    metastable = phase == AdaptivePhaseState.METASTABLE
+    if omega_final >= TOPOLOGICAL_VETO and fc_final > 0.0:
+        rul_steps = 0.0
+    elif fc_final > 0.0 and omega_final < TOPOLOGICAL_VETO:
+        rul_steps = max(0.0, (TOPOLOGICAL_VETO - omega_final) / (fc_final + 1e-12))
+    else:
+        rul_steps = float("inf")
+
+    verdict = "FAIL" if veto else "PASS"
+    v4_meta = {
+        "cumulative_entropy": round(omega_final, 6),
+        "fatigue_gradient_fc": round(fc_final, 8),
+        "remaining_useful_life_periods": round(rul_steps, 2)
+        if rul_steps != float("inf")
+        else "NOMINAL / STABLE",
+        "total_kinetic_breaches": breach_count,
+        "max_observed_jitter": round(max_jitter, 8),
+        "verdict": verdict,
+        "phase_label": phase.value,
+        "stalled_zone": metastable,
+        "quench_kinetic_veto": veto,
+        "domain_id": profile_name,
+        "profile_name": profile_name,
+        "state_coordinate": "Omega_t",
+        "observer_mode": "aria_adaptive",
+        "anchor_frozen": anchor_frozen,
+        "epsilon_scaled": auditor.epsilon_scaled,
+        "d_model": d_model,
+    }
+
+    return {
+        "verdict": verdict,
+        "phi_current": omega_final,
+        "fc_gradient": fc_final,
+        "remaining_useful_life_steps": rul_steps,
+        "system_phase": phase.value,
+        "v4_meta": v4_meta,
+        "processed_df": df,
+    }

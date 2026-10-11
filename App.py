@@ -1,3 +1,4 @@
+import json
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -10,6 +11,16 @@ import Forensic_kernel as kernel
 
 # Resolve Application Directories for Brand Ingestion
 _APP_DIR = os.path.dirname(os.path.abspath(__file__))
+
+CRYPTO_COPY = (
+    "Ed25519 Hardware-Ready Software Signature "
+    "(HMAC/Ed25519 pure-Python & cryptography module fallback; "
+    "cloud HSM key injection supported)."
+)
+
+BASELINE_OBSERVER = "Baseline Sentinel Observer (Static Genesis)"
+ARIA_OBSERVER = "ARIA Adaptive Observer (Dynamic Baseline Annealing & Orthogonal Shear)"
+
 
 def _logo_path():
     """Aggressively scans the script directory and working path for any variant of the brand asset."""
@@ -96,21 +107,28 @@ AI_HOMEOSTASIS_COLD_START = (
     "Expecting transformer residual stream telemetry or hidden-state activation vectors.\n"
     "Tracks second-derivative kinetic acceleration (d²θ/dt²), sub-resolution titration "
     "firewall breaches (|J_tau| > 1e-7),\n"
-    "and State Uncertainty Coordinates (Omega_t). Triggers Topological Veto at Omega >= 0.19."
+    "and State Uncertainty Coordinates (Omega_t). Triggers Topological Veto at Omega >= 0.19.\n"
+    "Veto events auto-mint Dual-Pillar schema v1.0 `.sent` attestation bags.\n\n"
+    f"Signing: {CRYPTO_COPY}"
 )
 
 
-def _analyze_zone(df_zone: pd.DataFrame, profile_name: str) -> dict:
+def _analyze_zone(df_zone: pd.DataFrame, profile_name: str, ai_observer: str = BASELINE_OBSERVER) -> dict:
     """
     Route zone analysis to the AI residual auditor or the physical Engine kernel.
 
-    AI_HOMEOSTASIS prefers ``SentinelActivationAuditor`` (soft-falls back to Engine
-    if PyTorch / auditor_ai is unavailable on the host).
+    AI_HOMEOSTASIS routes to baseline or ARIA adaptive observer; soft-falls back
+    to Engine if PyTorch / auditor_ai is unavailable on the host.
     """
     if profile_name != "AI_HOMEOSTASIS":
         return engine.analyze_systemic_solvency(df_zone, profile_name=profile_name)
 
+    use_aria = ai_observer == ARIA_OBSERVER
     try:
+        if use_aria:
+            from auditor_ai.adaptive_engine import analyze_adaptive_dataframe
+
+            return analyze_adaptive_dataframe(df_zone, profile_name=profile_name)
         from auditor_ai.sentinel_engine import analyze_activation_dataframe
 
         return analyze_activation_dataframe(df_zone, profile_name=profile_name)
@@ -119,7 +137,24 @@ def _analyze_zone(df_zone: pd.DataFrame, profile_name: str) -> dict:
             "PyTorch AI auditor unavailable on this host — falling back to Engine.py "
             "finite-difference proxy for AI_HOMEOSTASIS."
         )
-        return engine.analyze_systemic_solvency(df_zone, profile_name="AI_HOMEOSTASIS")
+        report = engine.analyze_systemic_solvency(df_zone, profile_name="AI_HOMEOSTASIS")
+        report.setdefault("v4_meta", {})["observer_mode"] = (
+            "aria_adaptive_fallback" if use_aria else "baseline_sentinel_fallback"
+        )
+        return report
+
+
+def _mint_v10_bag(report: dict, zone_name: str) -> dict:
+    """Mint a Dual-Pillar schema v1.0 bag from an analysis report."""
+    return kernel.mint_sentinel_v10_from_report(report, zone_name)
+
+
+def _veto_cache_key(zone: str, report: dict, ai_observer: str) -> str:
+    meta = report.get("v4_meta", {}) or {}
+    return (
+        f"{zone}|{ai_observer}|{report.get('phi_current')}|{report.get('fc_gradient')}|"
+        f"{meta.get('total_kinetic_breaches')}|{meta.get('observer_mode')}"
+    )
 
 
 selected_zone_label = st.sidebar.selectbox(
@@ -128,8 +163,18 @@ selected_zone_label = st.sidebar.selectbox(
 )
 resolved_profile = ZONE_REGISTRY[selected_zone_label]
 st.sidebar.info(f"Active Physics Blueprint: **{resolved_profile}**")
+
+ai_observer = BASELINE_OBSERVER
 if resolved_profile == "AI_HOMEOSTASIS":
-    st.sidebar.success("AI Homeostasis observer armed (Ω_t / residual stream).")
+    ai_observer = st.sidebar.radio(
+        "AI Observer Mode:",
+        [BASELINE_OBSERVER, ARIA_OBSERVER],
+        key="ai_observer_mode",
+    )
+    if ai_observer == ARIA_OBSERVER:
+        st.sidebar.success("ARIA adaptive observer armed (annealing + orthogonal shear / Ω_t).")
+    else:
+        st.sidebar.success("Baseline Sentinel observer armed (static genesis / Ω_t).")
 
 st.sidebar.markdown("---")
 
@@ -231,13 +276,29 @@ if uploaded_file is not None:
         
     all_reports = {}
     entropy_max = 0.0
+    auto_veto_bags: dict[str, dict] = {}
+
+    if "auto_veto_bags" not in st.session_state:
+        st.session_state.auto_veto_bags = {}
+    if "auto_veto_keys" not in st.session_state:
+        st.session_state.auto_veto_keys = {}
     
     for zone in zone_labels:
         df_zone = df_stream[df_stream["sensor_id"] == zone]
         zone_profile = SENSOR_ID_PROFILE_MAP.get(zone, resolved_profile)
-        report = _analyze_zone(df_zone, zone_profile)
+        report = _analyze_zone(df_zone, zone_profile, ai_observer=ai_observer)
         all_reports[zone] = report
         entropy_max = max(entropy_max, report["phi_current"])
+
+        # Automatic Dual-Pillar v1.0 mint on Topological Veto (either observer).
+        if report.get("v4_meta", {}).get("quench_kinetic_veto") or float(report.get("phi_current", 0.0)) >= 0.19:
+            cache_key = _veto_cache_key(str(zone), report, ai_observer)
+            prior_key = st.session_state.auto_veto_keys.get(str(zone))
+            if prior_key != cache_key or str(zone) not in st.session_state.auto_veto_bags:
+                bag = _mint_v10_bag(report, str(zone))
+                st.session_state.auto_veto_bags[str(zone)] = bag
+                st.session_state.auto_veto_keys[str(zone)] = cache_key
+            auto_veto_bags[str(zone)] = st.session_state.auto_veto_bags[str(zone)]
         
     # Boundary Check State Routing for Master Status Ribbon
     quench_zones = [k for k, v in all_reports.items() if v["v4_meta"]["quench_kinetic_veto"]]
@@ -264,6 +325,12 @@ if uploaded_file is not None:
         </div>
     """, unsafe_allow_html=True)
 
+    if auto_veto_bags:
+        st.warning(
+            f"Topological Veto attested — auto-minted Dual-Pillar schema v1.0 `.sent` bag(s) for: "
+            f"{', '.join(auto_veto_bags.keys())}"
+        )
+
     tab1, tab2 = st.tabs(["📊 Systemic Phase Space Tracker", "🗂️ Attestation Summary Bag"])
     
     with tab1:
@@ -287,10 +354,12 @@ if uploaded_file is not None:
         col5.metric("Kinetic Breaches", str(meta['total_kinetic_breaches']), help="Total threshold anomalies. Note: A stable control zone can accumulate baseline noise breaches without causing an upward shift in Phase Gates or Φ/Ω.")
 
         profile_label = meta.get("profile_name") or meta.get("domain_id") or resolved_profile
+        observer_label = meta.get("observer_mode") or ("physical_telemetry" if not is_ai_profile else "baseline_sentinel")
         st.markdown(
             f"**Current Node Phase Status:** `{meta['phase_label']}` | "
             f"**Verification Verdict:** `{meta['verdict']}` | "
-            f"**Physics Blueprint:** `{profile_label}`"
+            f"**Physics Blueprint:** `{profile_label}` | "
+            f"**Observer:** `{observer_label}`"
         )
 
         st.markdown("---")
@@ -325,34 +394,57 @@ if uploaded_file is not None:
     with tab2:
         st.subheader("Cryptographic Audit Attestation Seals")
         st.markdown(
-            "Select a node to mint an immutable **schema v1.0** `.sent` Attestation Evidence Bag "
-            "(`attestation_header`, `thermodynamic_state_vector`, `execution_context`, `flags`, "
-            "`cryptographic_attestation`):"
+            "Select a node to mint an immutable **Dual-Pillar schema v1.0** `.sent` Attestation Evidence Bag "
+            "with exactly four blocks: "
+            "`attestation_header`, `thermodynamic_state_vector`, `execution_context`, "
+            "`cryptographic_attestation`."
         )
+        st.caption(CRYPTO_COPY)
         
         target_zone_bag = st.selectbox("Select Node for Export:", zone_labels, key="bag_export_sel")
         selected_report = all_reports[target_zone_bag]
-        observer_mode = (
-            "ai_residual_stream"
-            if (selected_report["v4_meta"].get("profile_name") or resolved_profile) == "AI_HOMEOSTASIS"
-            else "physical_telemetry"
+
+        # Prefer the auto-minted veto bag when present so export matches the veto artifact.
+        if str(target_zone_bag) in auto_veto_bags:
+            bag = auto_veto_bags[str(target_zone_bag)]
+            st.info("Exporting the auto-minted Topological Veto attestation for this node.")
+        else:
+            bag = _mint_v10_bag(selected_report, str(target_zone_bag))
+
+        thermo = bag["thermodynamic_state_vector"]
+        crypto = bag["cryptographic_attestation"]
+        hdr = bag["attestation_header"]
+
+        st.markdown("##### Schema v1.0 metadata preview")
+        m1, m2, m3, m4 = st.columns(4)
+        m1.metric("state_coordinate_omega", f"{thermo['state_coordinate_omega']:.6f}")
+        m2.metric("sub_resolution_jitter_j_tau", f"{thermo['sub_resolution_jitter_j_tau']:.8f}")
+        m3.metric("rolling_fatigue_fc (fc)", f"{thermo['rolling_fatigue_fc']:.8f}")
+        m4.metric("sequence_step", str(hdr["sequence_step"]))
+        st.markdown(
+            f"**phase_boundary_state:** `{thermo['phase_boundary_state']}` · "
+            f"**signature_algorithm:** `{crypto['signature_algorithm']}` · "
+            f"**canonical_row_hash:** `{crypto['canonical_row_hash'][:16]}…`"
         )
+        if is_chain_valid is not None:
+            st.caption(
+                f"Upstream CSV row-hash chain: "
+                f"{'VERIFIED' if is_chain_valid else 'COMPROMISED / UNSIGNED'}"
+            )
+
+        evidence_string = json.dumps(bag, indent=4)
         
-        evidence_string = kernel.mint_sentinel_evidence_bag(
-            selected_report,
-            target_zone_bag,
-            runtime="streamlit-ops",
-            observer_mode=observer_mode,
-            chain_of_custody_verified=is_chain_valid,
+        st.text_area(
+            "Signed Dual-Pillar `.sent` Evidence Block (schema v1.0):",
+            evidence_string,
+            height=350,
         )
-        
-        st.text_area("Signed `.sent` Evidence Block Content (schema v1.0):", evidence_string, height=350)
         
         st.download_button(
-            label=f"Export {target_zone_bag}.sent Evidence Bag",
+            label=f"Export {target_zone_bag}.sent Evidence Bag (schema v1.0)",
             data=evidence_string,
-            file_name=f"{target_zone_bag.lower()}.sent",
-            mime="application/json"
+            file_name=f"{str(target_zone_bag).lower()}.sent",
+            mime="application/json",
         )
         
 else:

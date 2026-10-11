@@ -305,6 +305,7 @@ def analyze_activation_dataframe(
         rul_steps = float("inf")
 
     verdict = "FAIL" if veto else "PASS"
+    max_jitter = float(max(abs(a) for a in accelerations) if accelerations else 0.0)
     v4_meta = {
         "cumulative_entropy": round(omega_final, 6),
         "fatigue_gradient_fc": round(fc_final, 8),
@@ -312,7 +313,7 @@ def analyze_activation_dataframe(
         if rul_steps != float("inf")
         else "NOMINAL / STABLE",
         "total_kinetic_breaches": breach_count,
-        "max_observed_jitter": 0.0,
+        "max_observed_jitter": round(max_jitter, 8),
         "verdict": verdict,
         "phase_label": phase.value,
         "stalled_zone": metastable,
@@ -320,6 +321,7 @@ def analyze_activation_dataframe(
         "domain_id": profile_name,
         "profile_name": profile_name,
         "state_coordinate": "Omega_t",
+        "observer_mode": "baseline_sentinel",
     }
 
     return {

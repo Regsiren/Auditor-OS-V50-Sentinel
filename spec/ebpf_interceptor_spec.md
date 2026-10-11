@@ -1,44 +1,52 @@
 # eBPF Interceptor Specification — Topological Veto Path
 
 **Protocol:** THOHAT-V50-SENTINEL  
-**Schema companion:** [`sent_attestation.json`](sent_attestation.json)  
-**Trigger condition:** $\Omega_{\text{final}} \ge 0.19$ (Topological Bifurcation / Institutional Binary Veto Gate)  
+**Schema companion:** [`sent_attestation.json`](sent_attestation.json) (Dual-Pillar v1.0)  
+**Trigger condition:** `thermodynamic_state_vector.state_coordinate_omega >= 0.19` (Topological Veto)  
 **Master whitepaper:** [doi:10.5281/zenodo.23185495](https://doi.org/10.5281/zenodo.23185495)
 
 ---
 
 ## 1. Purpose
 
-When the AI Homeostasis auditor (or a physical telemetry zone) asserts a **Topological Veto**, the Sovereign Oracle Protocol may arm a Linux kernel-level interceptor. This document specifies the **reference architecture** for that interceptor. It is a design specification for implementers and auditors — not a shipped kernel module in this open-source release.
+When the AI Homeostasis auditor (baseline or ARIA adaptive) or a physical telemetry zone asserts a **Topological Veto**, the Sovereign Oracle Protocol may arm a Linux kernel-level interceptor. This document specifies the **reference architecture** for that interceptor. It is a design specification for implementers and auditors — not a shipped kernel module in this open-source release.
 
-The open-source V50-S core **detects and attests** the veto. Production packet drop / socket severing is an optional closed-source deployment layer (Auditor OS Oracle) that consumes `.sent` bags conforming to schema v1.0.
+The open-source V50-S core **detects and attests** the veto by minting a Dual-Pillar schema v1.0 `.sent` bag. Production packet drop / socket severing is an optional closed-source deployment layer (Auditor OS Oracle) that consumes those bags.
 
 ---
 
-## 2. Trigger Semantics
+## 2. Trigger Semantics (Schema v1.0)
 
-| Symbol | Gate | Action |
-|--------|------|--------|
-| $\Omega_t < 0.07$ | Homeostatic | Observe only; mint optional attestation |
-| $0.07 \le \Omega_t < 0.19$ | Metastable | Soft warn; escalate telemetry sampling |
-| $\Omega_t \ge 0.19$ | **Topological Veto** | Mint `.sent` bag; arm eBPF interceptor policy |
+| Schema field | Gate | Action |
+|--------------|------|--------|
+| `thermodynamic_state_vector.state_coordinate_omega < 0.07` | Homeostatic | Observe only; mint optional attestation |
+| `0.07 ≤ state_coordinate_omega < 0.19` | Metastable | Soft warn; escalate telemetry sampling |
+| `state_coordinate_omega ≥ 0.19` | **Topological Veto** | Mint `.sent` bag; arm eBPF interceptor policy |
+| `thermodynamic_state_vector.sub_resolution_jitter_j_tau > 1e-7` | Micro-titration breach | Escalate sampling; contribute to veto evidence |
 
 Arming requires all of:
 
-1. `flags.topological_veto == true` in a schema-valid `.sent` bag  
-2. Operator-enabled intercept policy for the session / zone  
-3. Valid `cryptographic_attestation.auth_sig` under the deployment salt
+1. Schema-valid Dual-Pillar v1.0 `.sent` bag with exactly four top-level blocks  
+2. `thermodynamic_state_vector.state_coordinate_omega >= 0.19`  
+   (equivalently `phase_boundary_state == "Topological Veto (≥ 0.19 Ω)"`)  
+3. Operator-enabled intercept policy for the session / zone  
+4. Valid `cryptographic_attestation.digital_signature` over `canonical_row_hash`  
+   (`signature_algorithm` is `Ed25519` or `HMAC-SHA256-FALLBACK`)
+
+Micro-titration evidence (non-arming by itself, but recorded in the bag):
+
+- `thermodynamic_state_vector.sub_resolution_jitter_j_tau > 1e-7`
 
 ---
 
 ## 3. Architecture Overview
 
 ```
-┌──────────────────────────┐     Ω_final ≥ 0.19      ┌─────────────────────────┐
-│ SentinelActivationAuditor│ ──────────────────────► │ .sent Attestation Bag   │
-│ (userspace / PyTorch)    │                         │ (JSON Schema v1.0)      │
+┌──────────────────────────┐  Ω ≥ 0.19 (schema v1.0)  ┌─────────────────────────┐
+│ Baseline / ARIA auditor  │ ──────────────────────► │ .sent Attestation Bag   │
+│ (userspace / PyTorch)    │   mint_sentinel_v10_*   │ (JSON Schema v1.0)      │
 └──────────────────────────┘                         └───────────┬─────────────┘
-                                                                  │ verified sig
+                                                                  │ verify digital_signature
                                                                   ▼
                                                      ┌─────────────────────────┐
                                                      │ Policy Daemon (userspace)│
@@ -92,10 +100,12 @@ Ingress drop alone does not tear down already-established sockets. Companion pro
 
 Minimal responsibilities:
 
-1. Validate incoming `.sent` bags against `spec/sent_attestation.json`.
-2. Verify `auth_sig` using the deployment salt (never log the salt).
-3. If `topological_veto && ebpf_intercept_armed`: update BPF maps; emit audit event.
-4. On subsequent Homeostatic attestation for the same session: clear map entries (recovery).
+1. Validate incoming `.sent` bags against `spec/sent_attestation.json` (four-block Dual-Pillar v1.0).
+2. Verify `cryptographic_attestation.digital_signature` over `canonical_row_hash`  
+   (Ed25519 via injected / HSM-backed key material, or HMAC-SHA256 fallback on lean hosts).
+3. If `state_coordinate_omega >= 0.19` and intercept policy is enabled: update BPF maps; emit audit event.
+4. Optionally inspect `sub_resolution_jitter_j_tau > 1e-7` for micro-titration escalation telemetry.
+5. On subsequent Homeostatic attestation for the same session (`state_coordinate_omega < 0.07`): clear map entries (recovery).
 
 ---
 
@@ -112,9 +122,10 @@ Minimal responsibilities:
 
 | Component | This repository |
 |-----------|-----------------|
-| $\Omega_t$ / $\Phi$ observer gates | ✅ `Engine.py`, `auditor_ai/sentinel_engine.py` |
-| `.sent` schema | ✅ `spec/sent_attestation.json` |
-| Demo veto trajectory | ✅ `examples/demo_residual_stream.py` |
+| $\Omega_t$ / $\Phi$ observer gates | ✅ `Engine.py`, `auditor_ai/sentinel_engine.py`, `auditor_ai/adaptive_engine.py` |
+| Dual-Pillar `.sent` schema v1.0 | ✅ `spec/sent_attestation.json` |
+| Portal / veto mint path | ✅ `Forensic_kernel.mint_sentinel_v10_*`, `App.py` |
+| Demo veto trajectory | ✅ `examples/demo_residual_stream.py`, `examples/demo_adaptive_alignment.py` |
 | Production eBPF programs / policy daemon | ❌ Closed-source / partner deployment |
 
-This specification exists so independent reviewers can verify that the **mathematical veto** and the **kernel containment path** share the same $0.19$ threshold and attestation contract.
+This specification exists so independent reviewers can verify that the **mathematical veto** and the **kernel containment path** share the same $0.19$ threshold and Dual-Pillar schema v1.0 attestation contract.

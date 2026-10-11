@@ -125,7 +125,7 @@ ARIA evaluation uses two complementary matrices:
 
 ## 9. Cryptographic Coupling (Pillar II)
 
-Every adaptive veto mints a Dual-Pillar `.sent` bag (`mint_sentinel_v10_bag`) with Ed25519 (or HMAC fallback) over `canonical_row_hash`. Bags chain via `prev_bag_hash` for non-repudiation across reasoning steps. ISO 20022 mapping (`spec/iso20022_mapper.py`) injects the hash into pacs.008 / camt.053 identifiers and executes a dividend kill-switch when $\Omega \ge 0.19$.
+Every adaptive (or baseline) Topological Veto mints a Dual-Pillar `.sent` bag via `mint_sentinel_v10_bag` / `mint_sentinel_v10_from_report` with an Ed25519 Hardware-Ready Software Signature (HMAC/Ed25519 pure-Python & cryptography module fallback; cloud HSM key injection supported) over `canonical_row_hash`. The Streamlit ZONE-07 portal auto-mints on veto. Bags chain via `prev_bag_hash` for non-repudiation across reasoning steps. ISO 20022 mapping (`spec/iso20022_mapper.py`) injects the hash into pacs.008 / camt.053 identifiers and executes a dividend kill-switch when $\Omega \ge 0.19$.
 
 ---
 

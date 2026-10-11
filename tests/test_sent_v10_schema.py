@@ -92,6 +92,51 @@ def test_sign_ed25519_canonical_hash_deterministic_hmac_fallback_or_ed25519():
     assert sig_a["digital_signature"] == sig_b["digital_signature"]
 
 
+def test_mint_v10_from_report_matches_schema_and_portal_keys():
+    """Portal export path: analysis report → four-block Dual-Pillar bag."""
+    jsonschema = pytest.importorskip("jsonschema")
+    with open(SCHEMA_PATH, encoding="utf-8") as fh:
+        schema = json.load(fh)
+
+    report = {
+        "phi_current": 0.21,
+        "fc_gradient": 0.04,
+        "system_phase": "Topological Veto (≥ 0.19 Ω)",
+        "v4_meta": {
+            "cumulative_entropy": 0.21,
+            "fatigue_gradient_fc": 0.04,
+            "quench_kinetic_veto": True,
+            "stalled_zone": False,
+            "total_kinetic_breaches": 3,
+            "max_observed_jitter": 1.25,
+            "profile_name": "AI_HOMEOSTASIS",
+            "observer_mode": "aria_adaptive",
+            "phase_label": "Topological Veto (≥ 0.19 Ω)",
+        },
+        "processed_df": None,
+    }
+    bag = kernel.mint_sentinel_v10_from_report(
+        report,
+        "ZONE-07-RESIDUAL_STREAM",
+        private_key_bytes=bytes(range(32)),
+        hmac_key=b"unit-test-hmac-key",
+    )
+    assert set(bag.keys()) == {
+        "attestation_header",
+        "thermodynamic_state_vector",
+        "execution_context",
+        "cryptographic_attestation",
+    }
+    state = bag["thermodynamic_state_vector"]
+    assert "state_coordinate_omega" in state
+    assert "sub_resolution_jitter_j_tau" in state
+    assert "rolling_fatigue_fc" in state
+    assert "flags" not in bag
+    assert state["state_coordinate_omega"] == pytest.approx(0.21)
+    assert bag["execution_context"]["model_identifier"] == "aria-adaptive-observer"
+    jsonschema.validate(instance=bag, schema=schema)
+
+
 def test_iso20022_hash_injection_and_kill_switch():
     bag = _mint_sample(omega=0.21)
     bridged = bridge_sent_bag(bag)
