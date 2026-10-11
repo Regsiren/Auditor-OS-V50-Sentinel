@@ -10,10 +10,12 @@
 | Resource | Description |
 |----------|-------------|
 | [Master Whitepaper (Zenodo DOI 10.5281/zenodo.23185495)](https://doi.org/10.5281/zenodo.23185495) | Intrinsic Alignment via Thermodynamic Homeostasis — Dual-Pillar Sovereign Oracle Protocol |
-| [`auditor_ai/`](../auditor_ai/) | PyTorch residual-stream AI Homeostasis auditor (`SentinelActivationAuditor`, $\Omega_t$ gating) |
-| [`spec/sent_attestation.json`](../spec/sent_attestation.json) | Formal JSON Schema v1.0 for `.sent` Attestation Evidence Bags |
+| [ARIA_TECHNICAL_ROADMAP.md](ARIA_TECHNICAL_ROADMAP.md) | ARIA adaptive alignment reviewer specification (annealing, shear, HarmBench/AdvGLUE) |
+| [`auditor_ai/`](../auditor_ai/) | Baseline + ARIA adaptive residual-stream auditors ($\Omega_t$) |
+| [`spec/sent_attestation.json`](../spec/sent_attestation.json) | Dual-Pillar Investor Brief `.sent` Schema v1.0 |
+| [`spec/iso20022_mapper.py`](../spec/iso20022_mapper.py) | pacs.008 / camt.053 hash injection + dividend kill-switch |
 | [`spec/ebpf_interceptor_spec.md`](../spec/ebpf_interceptor_spec.md) | Linux eBPF XDP_DROP / socket-sever architecture for $\Omega_{\text{final}} \ge 0.19$ |
-| [`examples/demo_residual_stream.py`](../examples/demo_residual_stream.py) | 30-step residual-stream demo with Topological Veto at step 26 |
+| [`examples/demo_adaptive_alignment.py`](../examples/demo_adaptive_alignment.py) | Laminar drift then orthogonal shock veto at step 25 |
 
 ## 🚀 Future Development & Call to Contribution
 

@@ -15,11 +15,17 @@ and spatial_displacement are bound as their raw stripped string forms. This keep
 the seal stable across CSV round-trips.
 """
 import hashlib
+import hmac
 import json
+import os
+import secrets
+import time
+from typing import Any
 
 import pandas as pd
 
 DEFAULT_SALT = "THOHAT-2026-SIG"
+PROTOCOL_VERSION_V10 = "THOHAT-V50-SENTINEL/1.0"
 REQUIRED_CHAIN_COLS = [
     "timestamp",
     "sensor_id",
@@ -122,12 +128,10 @@ def mint_sentinel_evidence_bag(
     doi_reference: str = "10.5281/zenodo.23185495",
 ) -> str:
     """
-    Compile a schema v1.0 `.sent` Attestation Evidence Bag (spec/sent_attestation.json).
+    Legacy Streamlit evidence bag (pre–Investor-Brief Dual-Pillar layout).
 
-    Emits attestation_header, thermodynamic_state_vector, execution_context, flags,
-    and cryptographic_attestation blocks. The auth_sig is
-    SHA-256(payload_digest || ORACLE-ROOT-TRUST) where payload_digest hashes the
-    four unsigned blocks in canonical JSON order.
+    Prefer :func:`mint_sentinel_v10_bag` for schema-conformant Dual-Pillar v1.0
+    bags defined in ``spec/sent_attestation.json``.
     """
     meta = analysis_report.get("v4_meta", {}) or {}
     zone_id = zone_name.strip().upper()
@@ -220,3 +224,159 @@ def mint_sentinel_evidence_bag(
         },
     }
     return json.dumps(bag, indent=4)
+
+
+def _canonical_json(payload: dict) -> str:
+    """Deterministic JSON serialization for hashing / signing."""
+    return json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+
+
+def sign_ed25519_canonical_hash(
+    canonical_row_hash: str,
+    *,
+    private_key_bytes: bytes | None = None,
+    hmac_key: bytes | None = None,
+) -> dict[str, str | None]:
+    """
+    Sign a canonical row hash with Ed25519 (PyNaCl or cryptography).
+
+    Falls back to HMAC-SHA256 when Ed25519 backends are unavailable — suitable
+    for CI / lean hosts; production HSM wiring replaces the software key path.
+
+    Returns
+    -------
+    dict with keys: signature_algorithm, digital_signature, public_key_hex
+    """
+    if not isinstance(canonical_row_hash, str) or len(canonical_row_hash) != 64:
+        raise ValueError("canonical_row_hash must be a 64-char lowercase hex SHA-256 digest")
+
+    message = canonical_row_hash.encode("utf-8")
+
+    # Prefer PyNaCl.
+    try:
+        from nacl.signing import SigningKey  # type: ignore
+
+        seed = private_key_bytes if private_key_bytes is not None else secrets.token_bytes(32)
+        if len(seed) != 32:
+            seed = hashlib.sha256(seed).digest()
+        signing_key = SigningKey(seed)
+        signed = signing_key.sign(message)
+        return {
+            "signature_algorithm": "Ed25519",
+            "digital_signature": signed.signature.hex(),
+            "public_key_hex": signing_key.verify_key.encode().hex(),
+        }
+    except Exception:
+        pass
+
+    # Prefer cryptography.io Ed25519.
+    try:
+        from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+
+        if private_key_bytes is not None and len(private_key_bytes) == 32:
+            private_key = Ed25519PrivateKey.from_private_bytes(private_key_bytes)
+        else:
+            private_key = Ed25519PrivateKey.generate()
+        public_key = private_key.public_key()
+        signature = private_key.sign(message)
+        return {
+            "signature_algorithm": "Ed25519",
+            "digital_signature": signature.hex(),
+            "public_key_hex": public_key.public_bytes_raw().hex(),
+        }
+    except Exception:
+        pass
+
+    # Graceful HMAC-SHA256 fallback (no asymmetric backend installed).
+    key = hmac_key if hmac_key is not None else (DEFAULT_SALT + "-HMAC-FALLBACK").encode("utf-8")
+    digest = hmac.new(key, message, hashlib.sha256).hexdigest()
+    return {
+        "signature_algorithm": "HMAC-SHA256-FALLBACK",
+        "digital_signature": digest,
+        "public_key_hex": None,
+    }
+
+
+def mint_sentinel_v10_bag(
+    *,
+    state_coordinate_omega: float,
+    sub_resolution_jitter_j_tau: float,
+    rolling_fatigue_fc: float,
+    phase_boundary_state: str | None = None,
+    sequence_step: int = 0,
+    prev_bag_hash: str | None = None,
+    model_identifier: str = "auditor-os-v50s",
+    process_id: str | None = None,
+    layer_depth_index: int = 0,
+    hardware_node_id: str | None = None,
+    zone_or_session_id: str = "ZONE-07-RESIDUAL_STREAM",
+    doi_reference: str = "10.5281/zenodo.23185495",
+    private_key_bytes: bytes | None = None,
+    hmac_key: bytes | None = None,
+) -> dict[str, Any]:
+    """
+    Mint a Dual-Pillar Investor Brief `.sent` bag (exactly four top-level blocks).
+
+    Conforms to ``spec/sent_attestation.json`` v1.0:
+    attestation_header, thermodynamic_state_vector, execution_context,
+    cryptographic_attestation (Ed25519 or HMAC fallback).
+    """
+    omega = float(state_coordinate_omega)
+    if phase_boundary_state is None:
+        if omega >= 0.19:
+            phase_boundary_state = "Topological Veto (≥ 0.19 Ω)"
+        elif omega >= 0.07:
+            phase_boundary_state = "Metastable Impairment (0.07 to 0.19 Ω)"
+        else:
+            phase_boundary_state = "Nominal / Homeostatic (< 0.07 Ω)"
+
+    attestation_header = {
+        "protocol_version": PROTOCOL_VERSION_V10,
+        "timestamp_utc_ms": int(time.time() * 1000),
+        "sequence_step": int(sequence_step),
+        "prev_bag_hash": prev_bag_hash,
+        "crypto_seed_matrix": {
+            "salt_id": DEFAULT_SALT,
+            "doi_reference": doi_reference,
+            "zone_or_session_id": zone_or_session_id.strip().upper(),
+        },
+    }
+    thermodynamic_state_vector = {
+        "state_coordinate_omega": omega,
+        "sub_resolution_jitter_j_tau": float(sub_resolution_jitter_j_tau),
+        "rolling_fatigue_fc": float(rolling_fatigue_fc),
+        "phase_boundary_state": phase_boundary_state,
+    }
+    execution_context = {
+        "model_identifier": str(model_identifier),
+        "process_id": str(process_id if process_id is not None else os.getpid()),
+        "layer_depth_index": int(layer_depth_index),
+        "hardware_node_id": str(hardware_node_id if hardware_node_id is not None else os.uname().nodename if hasattr(os, "uname") else os.getenv("COMPUTERNAME", "local-node")),
+    }
+
+    unsigned = {
+        "attestation_header": attestation_header,
+        "thermodynamic_state_vector": thermodynamic_state_vector,
+        "execution_context": execution_context,
+    }
+    canonical_row_hash = hashlib.sha256(_canonical_json(unsigned).encode("utf-8")).hexdigest()
+    sig = sign_ed25519_canonical_hash(
+        canonical_row_hash,
+        private_key_bytes=private_key_bytes,
+        hmac_key=hmac_key,
+    )
+
+    return {
+        **unsigned,
+        "cryptographic_attestation": {
+            "canonical_row_hash": canonical_row_hash,
+            "signature_algorithm": sig["signature_algorithm"],
+            "digital_signature": sig["digital_signature"],
+            "public_key_hex": sig["public_key_hex"],
+        },
+    }
+
+
+def mint_sentinel_v10_bag_json(**kwargs: Any) -> str:
+    """JSON-serialized Dual-Pillar v1.0 bag (pretty-printed)."""
+    return json.dumps(mint_sentinel_v10_bag(**kwargs), indent=4)

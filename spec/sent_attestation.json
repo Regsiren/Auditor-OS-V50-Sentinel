@@ -1,15 +1,14 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://thohatventures.com/schemas/sent-attestation-v1.0.json",
-  "title": "Sentinel .sent Attestation Evidence Bag",
-  "description": "Formal JSON Schema v1.0 for THOHAT-V50-SENTINEL cryptographic attestation evidence bags (.sent). Encodes thermodynamic state, execution context, operational flags, and a salted SHA-256 attestation seal.",
+  "title": "Sentinel .sent Attestation Evidence Bag — Dual-Pillar Schema v1.0",
+  "description": "Investor Brief Dual-Pillar .sent schema v1.0. Exactly four top-level blocks: attestation_header, thermodynamic_state_vector, execution_context, cryptographic_attestation.",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "attestation_header",
     "thermodynamic_state_vector",
     "execution_context",
-    "flags",
     "cryptographic_attestation"
   ],
   "properties": {
@@ -17,39 +16,41 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "protocol",
-        "schema_version",
-        "timestamp_utc",
-        "zone_or_session_id",
-        "domain_profile"
+        "protocol_version",
+        "timestamp_utc_ms",
+        "sequence_step",
+        "prev_bag_hash",
+        "crypto_seed_matrix"
       ],
       "properties": {
-        "protocol": {
+        "protocol_version": {
           "type": "string",
-          "const": "THOHAT-V50-SENTINEL"
+          "const": "THOHAT-V50-SENTINEL/1.0"
         },
-        "schema_version": {
-          "type": "string",
-          "const": "1.0"
+        "timestamp_utc_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "UTC minting epoch milliseconds."
         },
-        "timestamp_utc": {
-          "type": "string",
-          "format": "date-time",
-          "description": "UTC minting timestamp (ISO-8601)."
+        "sequence_step": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Monotonic reasoning / telemetry step index for this bag."
         },
-        "zone_or_session_id": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Sensor zone ID or AI reasoning-session identifier."
+        "prev_bag_hash": {
+          "type": ["string", "null"],
+          "pattern": "^([a-f0-9]{64})?$",
+          "description": "SHA-256 hex of the prior bag's canonical_row_hash, or null for genesis."
         },
-        "domain_profile": {
-          "type": "string",
-          "description": "Physics or AI domain preset (e.g. PLANETARY_INFRASTRUCTURE, AI_HOMEOSTASIS)."
-        },
-        "doi_reference": {
-          "type": "string",
-          "description": "Optional master whitepaper DOI for the provenance claim.",
-          "examples": ["10.5281/zenodo.23185495"]
+        "crypto_seed_matrix": {
+          "type": "object",
+          "description": "Named seed / salt identifiers (no raw secret material).",
+          "required": ["salt_id"],
+          "properties": {
+            "salt_id": { "type": "string" },
+            "doi_reference": { "type": "string" },
+            "zone_or_session_id": { "type": "string" }
+          }
         }
       }
     },
@@ -57,142 +58,92 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "theta_final",
-        "acceleration_final",
-        "fatigue_coefficient_fc",
-        "state_uncertainty",
-        "phase_state",
-        "kinetic_breach_count"
+        "state_coordinate_omega",
+        "sub_resolution_jitter_j_tau",
+        "rolling_fatigue_fc",
+        "phase_boundary_state"
       ],
       "properties": {
-        "theta_final": {
-          "type": "number",
-          "description": "Final observed state coordinate θ (physical telemetry or residual-stream scalar)."
-        },
-        "acceleration_final": {
-          "type": "number",
-          "description": "Final finite-difference kinetic acceleration d²θ/dt²."
-        },
-        "fatigue_coefficient_fc": {
+        "state_coordinate_omega": {
           "type": "number",
           "minimum": 0,
-          "description": "Rolling T-30 mean absolute acceleration (Fatigue Coefficient F_c)."
+          "description": "Accumulated State Uncertainty Coordinate Ω_t (AI) or Φ analogue."
         },
-        "state_uncertainty": {
+        "sub_resolution_jitter_j_tau": {
           "type": "number",
           "minimum": 0,
-          "description": "Unit-less accumulated trajectory metric: Φ (physical) or Ω (AI residual stream)."
+          "description": "Absolute kinetic / orthogonal acceleration |J_τ| at mint time."
         },
-        "phase_state": {
+        "rolling_fatigue_fc": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Rolling T-30 Fatigue Coefficient F_c."
+        },
+        "phase_boundary_state": {
           "type": "string",
           "enum": [
-            "Homeostatic State (< 0.07)",
-            "Metastable State (0.07 to 0.19)",
-            "Topological Bifurcation (≥ 0.19)"
+            "Nominal / Homeostatic (< 0.07 Ω)",
+            "Metastable Impairment (0.07 to 0.19 Ω)",
+            "Topological Veto (≥ 0.19 Ω)"
           ]
-        },
-        "kinetic_breach_count": {
-          "type": "integer",
-          "minimum": 0,
-          "description": "Count of titration-firewall breaches (|J_τ| > ε) over the audited window."
-        },
-        "remaining_useful_life_steps": {
-          "type": ["number", "null"],
-          "description": "Optional linear RUL heuristic in step periods; null if not computed."
         }
       }
     },
     "execution_context": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["runtime", "observer_mode", "titration_ceiling"],
-      "properties": {
-        "runtime": {
-          "type": "string",
-          "description": "Execution host (e.g. streamlit-ops, pytorch-residual-auditor, evaluate_corpus)."
-        },
-        "observer_mode": {
-          "type": "string",
-          "enum": ["physical_telemetry", "ai_residual_stream", "hybrid"]
-        },
-        "titration_ceiling": {
-          "type": "number",
-          "exclusiveMinimum": 0,
-          "description": "ε firewall ceiling used for this attestation (default 1e-7)."
-        },
-        "rolling_window": {
-          "type": "integer",
-          "minimum": 1,
-          "default": 30
-        },
-        "model_or_asset_id": {
-          "type": "string",
-          "description": "Optional frontier-model checkpoint ID or physical asset tag."
-        },
-        "reasoning_steps_audited": {
-          "type": "integer",
-          "minimum": 0
-        }
-      }
-    },
-    "flags": {
-      "type": "object",
-      "additionalProperties": false,
       "required": [
-        "homeostatic",
-        "metastable_impairment",
-        "topological_veto",
-        "ebpf_intercept_armed"
+        "model_identifier",
+        "process_id",
+        "layer_depth_index",
+        "hardware_node_id"
       ],
       "properties": {
-        "homeostatic": {
-          "type": "boolean"
+        "model_identifier": {
+          "type": "string",
+          "description": "Frontier model checkpoint ID, physical asset tag, or runtime label."
         },
-        "metastable_impairment": {
-          "type": "boolean"
+        "process_id": {
+          "type": "string",
+          "description": "OS process / session identifier."
         },
-        "topological_veto": {
-          "type": "boolean",
-          "description": "True when state_uncertainty >= 0.19."
+        "layer_depth_index": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Residual block index (0-based) or 0 for physical streams."
         },
-        "ebpf_intercept_armed": {
-          "type": "boolean",
-          "description": "True when topological_veto is asserted and kernel interceptor policy is enabled."
-        },
-        "chain_of_custody_verified": {
-          "type": "boolean",
-          "description": "Optional: True if upstream row_hash chain verified under Forensic_kernel."
+        "hardware_node_id": {
+          "type": "string",
+          "description": "Host / accelerator node identifier."
         }
       }
     },
     "cryptographic_attestation": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["algorithm", "salt_id", "payload_digest", "auth_sig"],
+      "required": [
+        "canonical_row_hash",
+        "signature_algorithm",
+        "digital_signature"
+      ],
       "properties": {
-        "algorithm": {
-          "type": "string",
-          "const": "SHA-256"
-        },
-        "salt_id": {
-          "type": "string",
-          "description": "Named salt identifier (e.g. THOHAT-2026-SIG). Actual salt material is not embedded.",
-          "examples": ["THOHAT-2026-SIG"]
-        },
-        "payload_digest": {
+        "canonical_row_hash": {
           "type": "string",
           "pattern": "^[a-f0-9]{64}$",
-          "description": "SHA-256 hex digest of the canonical JSON payload (header+state+context+flags) before signing."
+          "description": "SHA-256 of the canonical JSON of the three unsigned blocks."
         },
-        "auth_sig": {
+        "signature_algorithm": {
           "type": "string",
-          "pattern": "^[a-f0-9]{64}$",
-          "description": "SHA-256(payload_digest || ORACLE-ROOT-TRUST) hex attestation seal."
+          "enum": ["Ed25519", "HMAC-SHA256-FALLBACK"]
         },
-        "genesis_anchor": {
+        "digital_signature": {
           "type": "string",
-          "pattern": "^[a-f0-9]{64}$",
-          "description": "Optional per-zone/session genesis hash for chain continuity."
+          "minLength": 32,
+          "description": "Hex-encoded Ed25519 signature over canonical_row_hash, or HMAC-SHA256 fallback."
+        },
+        "public_key_hex": {
+          "type": ["string", "null"],
+          "description": "Optional Ed25519 public key (hex) when signature_algorithm is Ed25519."
         }
       }
     }

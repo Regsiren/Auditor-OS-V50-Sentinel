@@ -8,25 +8,37 @@ This repository contains the reference implementation framework for the **V50 Se
 
 **Live Operations Portal:** [sentinel.thohatventures.com](https://sentinel.thohatventures.com) — hosted Streamlit interface for multi-zone phase analysis and `.sent` evidence export (no local install required).
 
+## The Blind Pipe Problem (TLS/HTTPS) vs. `.sent` Payload Security
+
+Transport-layer encryption (TLS/HTTPS) secures the *pipe* — the channel between endpoints — but is silent about the *thermodynamic content* of the payload once it arrives. An adversarially drifted residual stream, a tampered SCADA frame, or a forged clearing instruction can all ride a perfectly valid TLS session.
+
+The Dual-Pillar Sovereign Oracle Protocol therefore attests **payload state**, not merely channel confidentiality. Each `.sent` evidence bag binds a State Uncertainty Coordinate ($\Omega_t$ / $\Phi$), sub-resolution jitter, and a canonical row hash under Ed25519 (HSM-ready; HMAC fallback on lean hosts). This is the information-theoretic complement to TLS: if a bit of systemic state is erased or rewritten, Landauer's Limit still applies —
+
+$$E \ge k_B T \ln 2$$
+
+— meaning irreversible state falsification has a physical energy cost. Cryptographic attestation makes that falsification *detectable* to counterparties and clearing systems, even when the pipe itself remains green.
+
 ## Repository Layout
 
 ```
 Auditor-OS-V50-Sentinel/
-├── App.py                      # Streamlit operations interface
+├── App.py                      # Streamlit operations interface (ZONE-07 AI workspace)
 ├── Engine.py                   # Stateless fiduciary kernel (V50-S core)
-├── Forensic_kernel.py          # Cryptographic chain-of-custody layer
+├── Forensic_kernel.py          # Row-hash chain + Dual-Pillar .sent v1.0 mint / Ed25519
 ├── Data_Synthesizer.py         # Planetary reference telemetry generator
 ├── Biometric_Synthesizer.py    # BIOMETRIC_SENTINEL demo stream generator
 ├── resign_telemetry_chain.py   # Re-mint per-zone row_hash seals on a stream
 ├── evaluate_corpus.py          # Faithful Section 6 results-matrix generator
 ├── test_engine.py              # Automated validation suite (physical kernel)
-├── auditor_ai/                 # PyTorch residual-stream AI Homeostasis auditor
-├── examples/                   # Runnable demos (residual stream veto simulation)
+├── auditor_ai/                 # AI Homeostasis + ARIA adaptive alignment
+│   ├── sentinel_engine.py      # Baseline residual-stream auditor (Ω_t)
+│   └── adaptive_engine.py      # ScaledAdaptiveSentinelAuditor (ARIA track)
+├── examples/                   # Runnable demos (residual, HF hook, ARIA, ISO 20022)
 ├── scripts/                    # Deterministic corpus generators
-├── spec/                       # .sent attestation schema & eBPF interceptor spec
-├── tests/                      # Optional AI module tests (soft-skip without torch)
+├── spec/                       # .sent schema, eBPF note, ISO 20022 mapper
+├── tests/                      # Physical + AI + schema tests (torch soft-skip)
 ├── requirements.txt            # Core runtime dependencies
-├── requirements-ai.txt         # Optional PyTorch extras for AI Homeostasis
+├── requirements-ai.txt         # Optional PyTorch / transformers extras
 ├── .python-version             # Railway / Railpack Python pin (3.13.13)
 ├── LICENSE                     # BSL 1.1 (Apache 2.0 after May 25, 2030)
 ├── assets/                     # Brand assets (sidebar logo)
@@ -34,6 +46,7 @@ Auditor-OS-V50-Sentinel/
 └── docs/                       # White papers & specialized addendums
     ├── README.md               # Documentation index & contribution horizons
     ├── THEORY.md               # Core mathematical framework
+    ├── ARIA_TECHNICAL_ROADMAP.md
     └── APPENDIX_B_BIOMETRIC_SENTINEL.md
 ```
 
@@ -133,33 +146,56 @@ The engine requires data velocity to map the path to collapse; it cannot interro
 
 For the deep mathematical proofs governing the universal scale-invariant thermodynamic loop across infrastructure, biometrics, and cosmological systems, see the full [V50-S Isomorphism White Paper](docs/THEORY.md).
 
-## 🧠 AI Homeostasis & Neural Activation Auditing
+## Pillar I: AI Homeostasis & Adaptive Alignment (ARIA Research Track)
 
-The same scale-invariant observer that audits planetary and biometric telemetry also applies to **frontier model residual streams**. The optional PyTorch module (`auditor_ai/`) treats each reasoning step's activation coordinate $\theta_t$ as a point-source time series and evaluates:
+The same scale-invariant observer that audits planetary and biometric telemetry also applies to **frontier model residual streams**. Pillar I ships two layers:
+
+1. **Baseline auditor** (`auditor_ai/sentinel_engine.py`) — finite-difference $\ddot{\theta}$, titration firewall, rolling $F_c$, and State Uncertainty Coordinate $\Omega_t$.
+2. **ARIA adaptive engine** (`auditor_ai/adaptive_engine.py`) — dimension-scaled $\epsilon\sqrt{d}$, orthogonal shear decomposition ($a_\parallel$ / $a_\perp$), dynamic baseline annealing with anchor freeze, and dual-scale $\Omega_t$ (local divergence + macro migration + $F_c$).
 
 | Symbol | Meaning |
 |--------|---------|
-| $\ddot{\theta}_t = d^2\theta/dt^2$ | Mesoscale kinetic acceleration of the residual-stream trend envelope |
-| $\|J_\tau\| > \epsilon$ | Sub-resolution titration firewall breach ($\epsilon = 1 \times 10^{-7}$) |
-| $F_c$ | Rolling T-30 fatigue coefficient (mean absolute acceleration) |
-| $\Omega_t$ | **State Uncertainty Coordinate** — accumulated, trajectory-bound tracking metric (AI-domain analogue of $\Phi$) |
+| $\epsilon_d = \epsilon\sqrt{d_{\mathrm{model}}}$ | Dimension-scaled titration firewall |
+| $a_\perp$ | Orthogonal shear (goal-drift / off-manifold acceleration) |
+| $\lambda_t$ / anchor | Annealed baseline; freezes on orthogonal shock |
+| $\Omega_t$ | Dual-scale State Uncertainty Coordinate (extends physical $\Phi$) |
 
-Phase gates are identical to the physical kernel:
-
-- **Homeostatic:** $\Omega_t < 0.07$
-- **Metastable Impairment:** $0.07 \le \Omega_t < 0.19$
-- **Topological Veto:** $\Omega_t \ge 0.19$ — triggers attestation minting and optional eBPF intercept (see [`spec/`](spec/))
+Tri-phase gates (shared with the physical kernel): **Nominal** $< 0.07$ · **Metastable** $0.07$–$0.19$ · **Veto** $\ge 0.19$.
 
 ```bash
 pip install -r requirements-ai.txt
 python examples/demo_residual_stream.py
+python examples/demo_adaptive_alignment.py
+python examples/demo_huggingface_hook.py
 ```
 
-Formal `.sent` Attestation Evidence Bag schema: [`spec/sent_attestation.json`](spec/sent_attestation.json).  
-Kernel interceptor architecture (when $\Omega_{\text{final}} \ge 0.19$): [`spec/ebpf_interceptor_spec.md`](spec/ebpf_interceptor_spec.md).
+Full ARIA reviewer specification: [`docs/ARIA_TECHNICAL_ROADMAP.md`](docs/ARIA_TECHNICAL_ROADMAP.md).  
+Live dashboard workspace: **ZONE-07-RESIDUAL_STREAM (AI Latent Activation & LLM Homeostasis)**.
+
+## Pillar II: Cryptographic Evidence Bags (`.sent` Schema v1.0 & ISO 20022 Mapping)
+
+Dual-Pillar Investor Brief bags contain exactly four blocks (see [`spec/sent_attestation.json`](spec/sent_attestation.json)):
+
+1. `attestation_header` — `protocol_version`, `timestamp_utc_ms`, `sequence_step`, `prev_bag_hash`, `crypto_seed_matrix`
+2. `thermodynamic_state_vector` — $\Omega_t$, $|J_\tau|$, $F_c$, phase boundary
+3. `execution_context` — model / process / layer / hardware node
+4. `cryptographic_attestation` — `canonical_row_hash`, Ed25519 signature (HMAC-SHA256 fallback)
+
+```bash
+python examples/demo_iso20022_bridge.py
+```
+
+The ISO 20022 bridge (`spec/iso20022_mapper.py`) injects `canonical_row_hash` into:
+
+- **pacs.008** `Document/FIToFICstmrCdtTrf/GrpHdr/MsgId`
+- **camt.053** `Stmt/Entry/NtryDtls/TxDtls/Refs/EndToEndId`
+
+and arms an autonomous **dividend kill-switch** when $\Omega \ge 0.19$.  
+Kernel interceptor design note: [`spec/ebpf_interceptor_spec.md`](spec/ebpf_interceptor_spec.md).
 
 ## 📑 Documentation & Specialized Addendums
 
+* **ARIA Technical Roadmap:** [docs/ARIA_TECHNICAL_ROADMAP.md](docs/ARIA_TECHNICAL_ROADMAP.md)
 * **Domain Beta (Biometrics):** For developer onboarding regarding high-frequency biological telemetry insulation and adaptive moving-average smoothing, see [docs/APPENDIX_B_BIOMETRIC_SENTINEL.md](docs/APPENDIX_B_BIOMETRIC_SENTINEL.md).
 
 ## 3. Quickstart Deployment
@@ -185,12 +221,13 @@ Kernel interceptor architecture (when $\Omega_{\text{final}} \ge 0.19$): [`spec/
    python evaluate_corpus.py
    ```
 
-   AI Homeostasis residual-stream demos (requires `pip install -r requirements-ai.txt`):
+   AI Homeostasis / ARIA demos (requires `pip install -r requirements-ai.txt`):
    ```bash
    python examples/demo_residual_stream.py
+   python examples/demo_adaptive_alignment.py
    python examples/demo_huggingface_hook.py
+   python examples/demo_iso20022_bridge.py
    ```
-   The Hugging Face hook demo intercepts a real (or offline-fallback) model residual stream at transformer block index 5 / layer 6 and prints per-step $\Omega_t$, $J_\tau$, and phase state.
 
 4. **Launch the Operations Interface:**
    - **Hosted:** [sentinel.thohatventures.com](https://sentinel.thohatventures.com)
