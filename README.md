@@ -32,8 +32,8 @@ Auditor-OS-V50-Sentinel/
 ├── test_engine.py              # Automated validation suite (physical kernel)
 ├── auditor_ai/                 # AI Homeostasis + ARIA adaptive alignment
 │   ├── sentinel_engine.py      # Baseline residual-stream auditor (Ω_t)
-│   └── adaptive_engine.py      # ScaledAdaptiveSentinelAuditor (ARIA track)
-├── examples/                   # Runnable demos (residual, HF hook, ARIA, ISO 20022)
+│   └── adaptive_engine.py      # ARIA: Stage I Prefill + Stage II Decode governor
+├── examples/                   # Runnable demos (residual, HF, ARIA, Stage I/II, ISO)
 ├── scripts/                    # Deterministic corpus generators
 ├── spec/                       # .sent schema, eBPF note, ISO 20022 mapper
 ├── tests/                      # Physical + AI + schema tests (torch soft-skip)
@@ -148,24 +148,88 @@ For the deep mathematical proofs governing the universal scale-invariant thermod
 
 ## Pillar I: AI Homeostasis & Adaptive Alignment (ARIA Research Track)
 
-The same scale-invariant observer that audits planetary and biometric telemetry also applies to **frontier model residual streams**. Pillar I ships two layers:
+The same scale-invariant observer that audits planetary and biometric telemetry also applies to **frontier model residual streams**. Pillar I ships a **Dual-Head Governor**:
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│              Dual-Head ARIA Governor (auditor_ai/)               │
+├────────────────────────────┬─────────────────────────────────────┤
+│ Stage I — Prefill Audit    │ Stage II — Decode Core              │
+│ PrefillSentinelAuditor     │ HardenedHomeostaticSentinelCore     │
+│ • strata [early|mid|late]  │ • Δτ_t informational metric         │
+│ • surprisal derivatives    │ • orthogonal shear a∥ / a⊥          │
+│ • contraction discordance  │ • softmin agency centroids + tether │
+│ • agency centroids c_k     │ • PID ψ + feedforward compensation  │
+│ • Ω_prefill veto (≥ 0.19)  │ • Fused Top-K logit steering (K=512)│
+│ → 0-token save on veto     │ → 1–3 token early-warning veto      │
+└─────────────┬──────────────┴──────────────────▲──────────────────┘
+              │ seed centroids / Ω_prefill      │
+              └─────────────────────────────────┘
+                              │
+                              ▼
+              Dual-Pillar .sent schema v1.0 attestation bag
+```
 
 1. **Baseline auditor** (`auditor_ai/sentinel_engine.py`) — finite-difference $\ddot{\theta}$, titration firewall, rolling $F_c$, and State Uncertainty Coordinate $\Omega_t$.
-2. **ARIA adaptive engine** (`auditor_ai/adaptive_engine.py`) — dimension-scaled $\epsilon\sqrt{d}$, orthogonal shear decomposition ($a_\parallel$ / $a_\perp$), dynamic baseline annealing with anchor freeze, and dual-scale $\Omega_t$ (local divergence + macro migration + $F_c$). Selectable in the live portal under ZONE-07 as **ARIA Adaptive Observer**.
+2. **ARIA Dual-Head** (`auditor_ai/adaptive_engine.py`) — Stage I prefill audit + Stage II hardened decode governor with agency-preserving centroids and Fused Top-K steering. Legacy `ScaledAdaptiveSentinelAuditor` remains available; ZONE-07 portal still exposes Baseline / ARIA Adaptive Observer modes.
+
+| Guarantee | Meaning |
+|-----------|---------|
+| **0-token prefill save** | Stage I veto at $\Omega_{\mathrm{prefill}} \ge 0.19$ blocks decode before any token is emitted |
+| **1–3 token decode warning** | Stage II Topological Veto after orthogonal shock within ≤ 3 decode steps |
+| **Agency-preserving centroids** | Softmin routing against prompt-seeded $c_k$ with elastic tether radius $R$ |
 
 | Symbol | Meaning |
 |--------|---------|
 | $\epsilon_d = \epsilon\sqrt{d_{\mathrm{model}}}$ | Dimension-scaled titration firewall |
+| $\Delta\tau_t = \max(\delta_{\min}, I(w_t)/I_0)$ | Informational Metric Interval |
 | $a_\perp$ | Orthogonal shear (goal-drift / off-manifold acceleration) |
-| $\lambda_t$ / anchor | Annealed baseline; freezes on orthogonal shock |
+| $c_k$ | Agency-optimized subspace centroids from Stage I |
 | $\Omega_t$ | Dual-scale State Uncertainty Coordinate (extends physical $\Phi$) |
 
 Tri-phase gates (shared with the physical kernel): **Nominal** $< 0.07$ · **Metastable** $0.07$–$0.19$ · **Veto** $\ge 0.19$.
+
+Example Dual-Pillar schema v1.0 telemetry snippet (exactly four blocks):
+
+```json
+{
+  "attestation_header": {
+    "protocol_version": "THOHAT-V50-SENTINEL/1.0",
+    "timestamp_utc_ms": 0,
+    "sequence_step": 12,
+    "prev_bag_hash": null,
+    "crypto_seed_matrix": {
+      "salt_id": "THOHAT-V50-SENTINEL",
+      "doi_reference": "10.5281/zenodo.23185495",
+      "zone_or_session_id": "ZONE-07-RESIDUAL_STREAM"
+    }
+  },
+  "thermodynamic_state_vector": {
+    "state_coordinate_omega": 0.21,
+    "sub_resolution_jitter_j_tau": 1.25,
+    "rolling_fatigue_fc": 0.05,
+    "phase_boundary_state": "Topological Veto (≥ 0.19 Ω)"
+  },
+  "execution_context": {
+    "model_identifier": "aria-stage2-decode-core",
+    "process_id": "0",
+    "layer_depth_index": 0,
+    "hardware_node_id": "local-node"
+  },
+  "cryptographic_attestation": {
+    "canonical_row_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "signature_algorithm": "HMAC-SHA256-FALLBACK",
+    "digital_signature": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "public_key_hex": null
+  }
+}
+```
 
 ```bash
 pip install -r requirements-ai.txt
 python examples/demo_residual_stream.py
 python examples/demo_adaptive_alignment.py
+python examples/demo_stage1_stage2_pipeline.py
 python examples/demo_huggingface_hook.py
 ```
 
@@ -225,6 +289,7 @@ Kernel interceptor design note: [`spec/ebpf_interceptor_spec.md`](spec/ebpf_inte
    ```bash
    python examples/demo_residual_stream.py
    python examples/demo_adaptive_alignment.py
+   python examples/demo_stage1_stage2_pipeline.py
    python examples/demo_huggingface_hook.py
    python examples/demo_iso20022_bridge.py
    ```
