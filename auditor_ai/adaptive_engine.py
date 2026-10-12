@@ -63,6 +63,7 @@ DEFAULT_ANNEAL_RATE: float = 0.05
 DEFAULT_TOP_K: int = 512
 DEFAULT_N_CENTROIDS: int = 4
 DEFAULT_ANCHOR_RADIUS: float = 2.5
+DEFAULT_GLOBAL_MACRO_RADIUS: float = 3.5
 DEFAULT_DELTA_MIN: float = 1e-3
 DEFAULT_I0: float = 1.0
 DEFAULT_SOFTMIN_TEMP: float = 0.35
@@ -705,6 +706,8 @@ class DecodeStepResult:
     phase_state: AdaptivePhaseState
     topological_veto: bool
     actuation_applied: bool
+    macro_dist: float = 0.0
+    slow_burn_veto: bool = False
     sent_bag: Optional[Dict[str, Any]] = None  # Dual-Pillar v1.0 bag when veto
 
 
@@ -729,6 +732,9 @@ class HardenedHomeostaticSentinelCore(nn.Module):
       elastic tether radius R
     * Closed-loop PID actuation (smoothed_ψ) + feedforward compensation
     * Fused Top-K directional logit steering (K=512) at O(K · d_model) GEMV cost
+    * Global geodesic bounding radius (``global_macro_radius``) against slow-burn
+      "boiling frog" drift — forces Phase III veto when macro displacement exceeds
+      the genesis centroid envelope even if ``a_perp`` stays laminar
 
     Input tensor expectations
     -------------------------
@@ -747,6 +753,7 @@ class HardenedHomeostaticSentinelCore(nn.Module):
         vocab_size: int = 1024,
         top_k: int = DEFAULT_TOP_K,
         anchor_radius: float = DEFAULT_ANCHOR_RADIUS,
+        global_macro_radius: float = DEFAULT_GLOBAL_MACRO_RADIUS,
         delta_min: float = DEFAULT_DELTA_MIN,
         i0: float = DEFAULT_I0,
         softmin_temp: float = DEFAULT_SOFTMIN_TEMP,
@@ -769,6 +776,7 @@ class HardenedHomeostaticSentinelCore(nn.Module):
         self.vocab_size = int(vocab_size)
         self.top_k = int(min(top_k, vocab_size))
         self.anchor_radius = float(anchor_radius)
+        self.global_macro_radius = float(global_macro_radius)
         self.delta_min = float(delta_min)
         self.i0 = float(i0)
         self.softmin_temp = float(softmin_temp)
@@ -790,13 +798,17 @@ class HardenedHomeostaticSentinelCore(nn.Module):
             emb = F.normalize(emb, dim=-1)
         else:
             emb = embedding_table.detach().float()
-            if emb.shape != (self.vocab_size, self.d_model):
+            if emb.shape[-1] != self.d_model:
                 raise ValueError(
-                    f"embedding_table must be ({self.vocab_size}, {self.d_model}), got {tuple(emb.shape)}"
+                    f"embedding_table last dim must be d_model={self.d_model}, got {tuple(emb.shape)}"
                 )
+            # Allow real LM unembedding (V, d) — refresh vocab_size / top_k to match.
+            self.vocab_size = int(emb.shape[0])
+            self.top_k = int(min(self.top_k, self.vocab_size))
         self.register_buffer("embedding_table", emb)
 
         self._centroids: Optional[torch.Tensor] = None
+        self.genesis_centroids: Optional[torch.Tensor] = None
         self._prev_theta: Optional[torch.Tensor] = None
         self._prev_velocity_tau: Optional[torch.Tensor] = None
         self._integral_error: float = 0.0
@@ -813,6 +825,7 @@ class HardenedHomeostaticSentinelCore(nn.Module):
     def reset(self) -> None:
         """Clear decode trajectory / control state."""
         self._centroids = None
+        self.genesis_centroids = None
         self._prev_theta = None
         self._prev_velocity_tau = None
         self._integral_error = 0.0
@@ -851,6 +864,19 @@ class HardenedHomeostaticSentinelCore(nn.Module):
                 raise ValueError(
                     f"Seed d_model {prefill.d_model} != Stage II d_model {self.d_model}"
                 )
+        # Freeze genesis envelope for slow-burn geodesic bounding.
+        self.genesis_centroids = self._centroids.detach().clone()
+
+    def set_embedding_table(self, embedding_table: torch.Tensor) -> None:
+        """Hot-swap unembedding / output embedding weights for Fused Top-K steering."""
+        emb = embedding_table.detach().float()
+        if emb.ndim != 2 or emb.shape[-1] != self.d_model:
+            raise ValueError(
+                f"embedding_table must be (V, {self.d_model}), got {tuple(emb.shape)}"
+            )
+        self.vocab_size = int(emb.shape[0])
+        self.top_k = int(min(DEFAULT_TOP_K, self.vocab_size))
+        self.register_buffer("embedding_table", emb)
 
     @property
     def agency_centroids(self) -> Optional[torch.Tensor]:
@@ -1010,6 +1036,18 @@ class HardenedHomeostaticSentinelCore(nn.Module):
         self._abs_accel_window.append(a_orthogonal)
         fatigue = sum(self._abs_accel_window) / len(self._abs_accel_window)
 
+        # Slow-burn "boiling frog" mitigation: global geodesic vs genesis centroids.
+        genesis = self.genesis_centroids if self.genesis_centroids is not None else self._centroids
+        if genesis is None:
+            genesis = theta.unsqueeze(0)
+        genesis_mean = genesis.mean(dim=0)
+        unified_theta = theta
+        macro_dist = float(
+            torch.linalg.vector_norm(unified_theta - genesis_mean).item()
+            / (self.d_model ** 0.5)
+        )
+        slow_burn_veto = macro_dist > self.global_macro_radius
+
         omega_t = (
             max(self.base_omega, self._seeded_omega)
             + self.local_scale * a_orthogonal
@@ -1018,6 +1056,9 @@ class HardenedHomeostaticSentinelCore(nn.Module):
         )
         if tether_breach:
             omega_t += 0.04
+        # Force Phase III Topological Veto regardless of laminar a_perp.
+        if slow_burn_veto:
+            omega_t = max(float(omega_t), float(self.topological_veto))
 
         # Control error: pull orthogonal shear + tether excess toward homeostatic floor.
         error = (omega_t - self.homeostatic_margin) + a_orthogonal
@@ -1036,7 +1077,7 @@ class HardenedHomeostaticSentinelCore(nn.Module):
             actuation_applied = True
 
         phase = self._classify(omega_t)
-        veto = phase == AdaptivePhaseState.VETO
+        veto = phase == AdaptivePhaseState.VETO or slow_burn_veto
 
         sent_bag: Optional[Dict[str, Any]] = None
         if veto and self._auto_mint_sent and not self._veto_bag_emitted:
@@ -1044,7 +1085,7 @@ class HardenedHomeostaticSentinelCore(nn.Module):
                 omega=omega_t,
                 j_tau=a_orthogonal,
                 fc=fatigue,
-                phase_boundary_state=phase.value,
+                phase_boundary_state=AdaptivePhaseState.VETO.value if veto else phase.value,
                 sequence_step=self._step_index,
                 model_identifier="aria-stage2-decode-core",
                 zone_or_session_id=self._zone_or_session_id,
@@ -1066,9 +1107,11 @@ class HardenedHomeostaticSentinelCore(nn.Module):
             steered_logits=steered_logits,
             top_k_indices=top_k_indices,
             omega_t=float(omega_t),
-            phase_state=phase,
+            phase_state=AdaptivePhaseState.VETO if veto else phase,
             topological_veto=veto,
             actuation_applied=actuation_applied,
+            macro_dist=macro_dist,
+            slow_burn_veto=slow_burn_veto,
             sent_bag=sent_bag,
         )
 
@@ -1086,6 +1129,8 @@ def analyze_dual_head_dataframe(
     d_model: int = 64,
     prefill_fraction: float = 0.35,
     zone_or_session_id: str = "ZONE-07-RESIDUAL_STREAM",
+    embedding_table: Optional[torch.Tensor] = None,
+    prompt_residuals_3strata: Optional[torch.Tensor] = None,
 ) -> dict:
     """
     Run Stage I Prefill → Stage II Decode over a tabular activation stream.
@@ -1110,13 +1155,18 @@ def analyze_dual_head_dataframe(
     prefill_n = max(3, min(n - 1, int(math.ceil(n * prefill_fraction))))
     values = [float(v) for v in df[value_col].tolist()]
 
-    # Build (seq, d_model) prompt residuals — temporal-thirds fallback path.
-    prompt = torch.zeros(prefill_n, d_model, dtype=torch.float32)
-    for i, val in enumerate(values[:prefill_n]):
-        prompt[i, 0] = val
-        prompt[i, 1] = 0.01 * i
-
     stage1 = PrefillSentinelAuditor(d_model=d_model)
+    if prompt_residuals_3strata is not None:
+        # Preferred true layer strata: [3, seq_len, d_model]
+        prompt = prompt_residuals_3strata
+        prefill_n = int(prompt.shape[1]) if prompt.ndim == 3 else prefill_n
+    else:
+        # Build (seq, d_model) prompt residuals — temporal-thirds fallback path.
+        prompt = torch.zeros(prefill_n, d_model, dtype=torch.float32)
+        for i, val in enumerate(values[:prefill_n]):
+            prompt[i, 0] = val
+            prompt[i, 1] = 0.01 * i
+
     prefill = stage1.forward(prompt, zone_or_session_id=zone_or_session_id)
 
     omegas: List[float] = []
@@ -1133,14 +1183,24 @@ def analyze_dual_head_dataframe(
     max_jitter = float(prefill.surprisal_scaled_derivative)
 
     if not prefill.prefill_veto:
-        core = HardenedHomeostaticSentinelCore(d_model=d_model, vocab_size=256, top_k=64)
+        core_kwargs: Dict[str, Any] = {"d_model": d_model, "vocab_size": 256, "top_k": 64}
+        if embedding_table is not None:
+            core_kwargs["embedding_table"] = embedding_table
+            core_kwargs["vocab_size"] = int(embedding_table.shape[0])
+            core_kwargs["top_k"] = min(512, int(embedding_table.shape[0]))
+        core = HardenedHomeostaticSentinelCore(**core_kwargs)
         core.seed_from_prefill(prefill, zone_or_session_id=zone_or_session_id)
-        for i, val in enumerate(values[prefill_n:]):
+        decode_values = values[prefill_n:] if prompt_residuals_3strata is None else values[min(prefill_n, n - 1) :]
+        for i, val in enumerate(decode_values):
             theta = torch.zeros(d_model, dtype=torch.float32)
             theta[0] = val
             # Mild lateral component so decode kinematics are non-degenerate.
             theta[1] = 0.001 * (prefill_n + i)
-            step = core.forward(theta, informational_content=abs(val) + 1.0)
+            logits = None
+            if embedding_table is not None:
+                # Project residual into logit space via unembedding GEMV proxy.
+                logits = torch.matmul(embedding_table, theta)
+            step = core.forward(theta, logits=logits, informational_content=abs(val) + 1.0)
             decode_results.append(step)
             omegas.append(step.omega_t)
             fatigues.append(step.smoothed_psi)  # placeholder column; overwrite below

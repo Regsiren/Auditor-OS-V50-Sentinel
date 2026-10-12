@@ -47,6 +47,7 @@ Auditor-OS-V50-Sentinel/
     ├── README.md               # Documentation index & contribution horizons
     ├── THEORY.md               # Core mathematical framework
     ├── ARIA_TECHNICAL_ROADMAP.md
+    ├── TEE_ENCLAVE_SPEC.md       # Confidential compute observer trust boundary
     └── APPENDIX_B_BIOMETRIC_SENTINEL.md
 ```
 
@@ -262,6 +263,7 @@ Kernel interceptor design note: [`spec/ebpf_interceptor_spec.md`](spec/ebpf_inte
 ## 📑 Documentation & Specialized Addendums
 
 * **ARIA Technical Roadmap:** [docs/ARIA_TECHNICAL_ROADMAP.md](docs/ARIA_TECHNICAL_ROADMAP.md)
+* **TEE Enclave Spec:** [docs/TEE_ENCLAVE_SPEC.md](docs/TEE_ENCLAVE_SPEC.md) — Observer Trust Boundary (Nitro / SEV-SNP) for Dual-Head + `.sent` mint isolation
 * **Domain Beta (Biometrics):** For developer onboarding regarding high-frequency biological telemetry insulation and adaptive moving-average smoothing, see [docs/APPENDIX_B_BIOMETRIC_SENTINEL.md](docs/APPENDIX_B_BIOMETRIC_SENTINEL.md).
 
 ## 3. Quickstart Deployment

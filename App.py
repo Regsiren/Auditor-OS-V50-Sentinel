@@ -120,6 +120,42 @@ AI_HOMEOSTASIS_COLD_START = (
 )
 
 
+def _try_load_unembedding_weights(d_model: int = 64):
+    """
+    Soft-load Causal LM unembedding weights for Dual-Head Fused Top-K steering.
+
+    Prefers ``model.get_output_embeddings().weight`` from a small open-weights
+    checkpoint (gpt2). Returns None when transformers / weights are unavailable.
+    """
+    cache_key = f"unembedding_{d_model}"
+    if cache_key in st.session_state:
+        return st.session_state[cache_key]
+    try:
+        import torch
+        from transformers import AutoModelForCausalLM
+    except ImportError:
+        st.session_state[cache_key] = None
+        return None
+    try:
+        model = AutoModelForCausalLM.from_pretrained("gpt2")
+        emb_mod = model.get_output_embeddings()
+        weight = emb_mod.weight.detach().float() if emb_mod is not None else None
+        if weight is None:
+            st.session_state[cache_key] = None
+            return None
+        # If portal Dual-Head uses a different d_model, pad/truncate feature dim.
+        if weight.shape[1] != d_model:
+            padded = torch.zeros(weight.shape[0], d_model, dtype=torch.float32)
+            n = min(d_model, weight.shape[1])
+            padded[:, :n] = weight[:, :n]
+            weight = padded
+        st.session_state[cache_key] = weight
+        return weight
+    except Exception:
+        st.session_state[cache_key] = None
+        return None
+
+
 def _analyze_zone(df_zone: pd.DataFrame, profile_name: str, ai_observer: str = BASELINE_OBSERVER) -> dict:
     """
     Route zone analysis to the AI residual auditor or the physical Engine kernel.
@@ -134,7 +170,18 @@ def _analyze_zone(df_zone: pd.DataFrame, profile_name: str, ai_observer: str = B
         if ai_observer == DUAL_HEAD_OBSERVER:
             from auditor_ai.adaptive_engine import analyze_dual_head_dataframe
 
-            return analyze_dual_head_dataframe(df_zone, profile_name=profile_name)
+            unembedding = None
+            if st.session_state.get("dual_head_use_hf_unembedding", False):
+                unembedding = _try_load_unembedding_weights(d_model=64)
+                if unembedding is not None:
+                    st.sidebar.caption("Fused Top-K: using model.get_output_embeddings().weight")
+                else:
+                    st.sidebar.caption("Fused Top-K: HF unembedding unavailable — synthetic table")
+            return analyze_dual_head_dataframe(
+                df_zone,
+                profile_name=profile_name,
+                embedding_table=unembedding,
+            )
         if ai_observer == ADAPTIVE_OBSERVER:
             from auditor_ai.adaptive_engine import analyze_adaptive_dataframe
 
@@ -190,6 +237,11 @@ if resolved_profile == "AI_HOMEOSTASIS":
     if ai_observer == DUAL_HEAD_OBSERVER:
         st.sidebar.success("Dual-Head Governor armed (Stage I Prefill + Stage II Decode).")
         st.sidebar.caption(EARLY_WARNING_COPY)
+        st.session_state["dual_head_use_hf_unembedding"] = st.sidebar.checkbox(
+            "Use HF unembedding for Fused Top-K (get_output_embeddings)",
+            value=bool(st.session_state.get("dual_head_use_hf_unembedding", False)),
+            help="When available, pass model.get_output_embeddings().weight into Stage II steering.",
+        )
     elif ai_observer == ADAPTIVE_OBSERVER:
         st.sidebar.success("Adaptive Annealing observer armed (single-anchor dynamic baseline / Ω_t).")
     else:

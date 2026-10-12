@@ -11,6 +11,7 @@
 |----------|-------------|
 | [Master Whitepaper (Zenodo DOI 10.5281/zenodo.23185495)](https://doi.org/10.5281/zenodo.23185495) | Intrinsic Alignment via Thermodynamic Homeostasis — Dual-Pillar Sovereign Oracle Protocol |
 | [ARIA_TECHNICAL_ROADMAP.md](ARIA_TECHNICAL_ROADMAP.md) | ARIA adaptive alignment reviewer specification (annealing, shear, HarmBench/AdvGLUE) |
+| [TEE_ENCLAVE_SPEC.md](TEE_ENCLAVE_SPEC.md) | Observer Trust Boundary — Nitro / SEV-SNP confidential compute isolation for Dual-Head + `.sent` mint |
 | [`auditor_ai/`](../auditor_ai/) | Baseline + ARIA adaptive residual-stream auditors ($\Omega_t$) |
 | [`spec/sent_attestation.json`](../spec/sent_attestation.json) | Dual-Pillar Investor Brief `.sent` Schema v1.0 |
 | [`spec/iso20022_mapper.py`](../spec/iso20022_mapper.py) | pacs.008 / camt.053 hash injection + dividend kill-switch |

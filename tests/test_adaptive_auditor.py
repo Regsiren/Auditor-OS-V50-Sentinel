@@ -227,6 +227,57 @@ def test_stage2_orthogonal_shock_vetoes_within_three_tokens():
     jsonschema.validate(instance=veto_bag, schema=schema)
 
 
+def test_slow_burn_global_macro_radius_forces_veto():
+    """Low a_perp but large genesis displacement → Phase III veto (boiling frog)."""
+    prefill = PrefillSentinelAuditor(d_model=64, n_centroids=4).forward(_benign_prompt())
+    core = HardenedHomeostaticSentinelCore(
+        d_model=64,
+        vocab_size=256,
+        top_k=64,
+        global_macro_radius=3.5,
+        anchor_radius=50.0,  # disable local tether so only global radius fires
+    )
+    core.seed_from_prefill(prefill)
+    assert core.genesis_centroids is not None
+
+    # Stay nearly static (tiny orth accel) but far from genesis mean in scaled norm.
+    far = torch.zeros(64)
+    far[:] = 40.0  # large coherent offset → macro_dist >> 3.5 after /sqrt(d)
+    result = core.forward(far, informational_content=1.0)
+    assert result.macro_dist > 3.5
+    assert result.slow_burn_veto is True
+    assert result.topological_veto is True
+    assert result.omega_t >= 0.19
+    assert result.sent_bag is not None
+
+
+def test_ephemeral_session_key_sign_and_verify():
+    session = kernel.generate_ephemeral_session_key("hsm-root-test-01", validity_hours=1)
+    assert "private_key_bytes" in session
+    assert len(session["public_key_hex"]) >= 32
+    assert kernel.verify_ephemeral_session_binding(session) is True
+
+    bag = kernel.mint_sentinel_v10_bag(
+        state_coordinate_omega=0.21,
+        sub_resolution_jitter_j_tau=0.5,
+        rolling_fatigue_fc=0.02,
+        ephemeral_session=session,
+        zone_or_session_id="ZONE-07-RESIDUAL_STREAM",
+    )
+    matrix = bag["attestation_header"]["crypto_seed_matrix"]
+    assert matrix["root_hsm_key_id"] == "hsm-root-test-01"
+    assert matrix["ephemeral_public_key_hex"] == session["public_key_hex"]
+    assert matrix["root_binding_signature"] == session["root_binding_signature"]
+    assert bag["cryptographic_attestation"]["signature_algorithm"] in (
+        "Ed25519",
+        "HMAC-SHA256-FALLBACK",
+    )
+    # Tamper binding → verify fails
+    bad = dict(session)
+    bad["public_key_hex"] = "ff" * 32
+    assert kernel.verify_ephemeral_session_binding(bad) is False
+
+
 def test_analyze_dual_head_dataframe_exposes_stage_omegas():
     import pandas as pd
 

@@ -297,6 +297,129 @@ def sign_ed25519_canonical_hash(
     }
 
 
+def generate_ephemeral_session_key(
+    root_hsm_key_id: str,
+    validity_hours: int = 1,
+    *,
+    root_private_key_bytes: bytes | None = None,
+) -> dict[str, Any]:
+    """
+    Generate an in-memory Ed25519 ephemeral session keypair for high-throughput
+    local signing (targeting multi-tenant enterprise node deployments at
+    10,000+ req/sec), bound to a root HSM master key identity.
+
+    The ephemeral public key is attested by a root binding signature over:
+        SHA-256(root_hsm_key_id || ephemeral_public_key_hex || valid_until_utc_ms)
+
+    Production deployments inject ``root_private_key_bytes`` from an HSM / PKCS#11
+    unwrap; when omitted, a deterministic software stand-in derived from
+    ``root_hsm_key_id`` is used for offline tests and lean hosts.
+
+    Returns
+    -------
+    dict with keys:
+      root_hsm_key_id, private_key_bytes, public_key_hex, root_binding_signature,
+      root_public_key_hex, created_at_utc_ms, valid_until_utc_ms,
+      signature_algorithm, binding_message_hash
+    """
+    if validity_hours < 1:
+        raise ValueError("validity_hours must be >= 1")
+    created = int(time.time() * 1000)
+    valid_until = created + int(validity_hours) * 3600 * 1000
+
+    # Ephemeral signing key (software Ed25519; HSM path injects root only).
+    ephemeral_seed = secrets.token_bytes(32)
+    eph_sig = sign_ed25519_canonical_hash(
+        hashlib.sha256(ephemeral_seed).hexdigest(),
+        private_key_bytes=ephemeral_seed,
+    )
+    # Re-derive a clean SigningKey-compatible seed and public key for the session.
+    try:
+        from nacl.signing import SigningKey  # type: ignore
+
+        sk = SigningKey(ephemeral_seed)
+        public_key_hex = sk.verify_key.encode().hex()
+        private_key_bytes = ephemeral_seed
+    except Exception:
+        try:
+            from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+
+            pk = Ed25519PrivateKey.from_private_bytes(ephemeral_seed)
+            public_key_hex = pk.public_key().public_bytes_raw().hex()
+            private_key_bytes = ephemeral_seed
+        except Exception:
+            # HMAC-only hosts: still emit a session material envelope.
+            private_key_bytes = ephemeral_seed
+            public_key_hex = hashlib.sha256(ephemeral_seed).hexdigest()
+
+    # Root binding key: real HSM material if provided, else deterministic stand-in.
+    if root_private_key_bytes is not None:
+        root_seed = (
+            root_private_key_bytes
+            if len(root_private_key_bytes) == 32
+            else hashlib.sha256(root_private_key_bytes).digest()
+        )
+    else:
+        root_seed = hashlib.sha256(f"HSM-ROOT::{root_hsm_key_id}".encode("utf-8")).digest()
+
+    binding_payload = f"{root_hsm_key_id}|{public_key_hex}|{valid_until}".encode("utf-8")
+    binding_hash = hashlib.sha256(binding_payload).hexdigest()
+    root_bind = sign_ed25519_canonical_hash(binding_hash, private_key_bytes=root_seed)
+    root_pub = root_bind.get("public_key_hex") or hashlib.sha256(root_seed).hexdigest()
+
+    return {
+        "root_hsm_key_id": str(root_hsm_key_id),
+        "private_key_bytes": private_key_bytes,
+        "public_key_hex": public_key_hex,
+        "root_binding_signature": root_bind["digital_signature"],
+        "root_public_key_hex": root_pub,
+        "root_signature_algorithm": root_bind["signature_algorithm"],
+        "created_at_utc_ms": created,
+        "valid_until_utc_ms": valid_until,
+        "signature_algorithm": eph_sig["signature_algorithm"],
+        "binding_message_hash": binding_hash,
+    }
+
+
+def verify_ephemeral_session_binding(
+    session: dict[str, Any],
+    *,
+    root_private_key_bytes: bytes | None = None,
+) -> bool:
+    """
+    Verify that an ephemeral session public key is bound to the declared root
+    HSM key id (injected root key material or software stand-in).
+    """
+    required = (
+        "root_hsm_key_id",
+        "public_key_hex",
+        "valid_until_utc_ms",
+        "root_binding_signature",
+        "binding_message_hash",
+    )
+    if not all(k in session for k in required):
+        return False
+    if int(time.time() * 1000) > int(session["valid_until_utc_ms"]):
+        return False
+    binding_payload = (
+        f"{session['root_hsm_key_id']}|{session['public_key_hex']}|"
+        f"{session['valid_until_utc_ms']}"
+    ).encode("utf-8")
+    expected_hash = hashlib.sha256(binding_payload).hexdigest()
+    if expected_hash != session["binding_message_hash"]:
+        return False
+    if root_private_key_bytes is not None:
+        root_seed = (
+            root_private_key_bytes
+            if len(root_private_key_bytes) == 32
+            else hashlib.sha256(root_private_key_bytes).digest()
+        )
+    else:
+        root_seed = hashlib.sha256(f"HSM-ROOT::{session['root_hsm_key_id']}".encode("utf-8")).digest()
+    check = sign_ed25519_canonical_hash(expected_hash, private_key_bytes=root_seed)
+    return check["digital_signature"] == session["root_binding_signature"]
+
+
 def mint_sentinel_v10_bag(
     *,
     state_coordinate_omega: float,
@@ -313,6 +436,7 @@ def mint_sentinel_v10_bag(
     doi_reference: str = "10.5281/zenodo.23185495",
     private_key_bytes: bytes | None = None,
     hmac_key: bytes | None = None,
+    ephemeral_session: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """
     Mint a Dual-Pillar Investor Brief `.sent` bag (exactly four top-level blocks).
@@ -320,6 +444,10 @@ def mint_sentinel_v10_bag(
     Conforms to ``spec/sent_attestation.json`` v1.0:
     attestation_header, thermodynamic_state_vector, execution_context,
     cryptographic_attestation (Ed25519 or HMAC fallback).
+
+    When ``ephemeral_session`` from :func:`generate_ephemeral_session_key` is
+    supplied, the bag is signed with the ephemeral private key and the root HSM
+    binding metadata is recorded under ``attestation_header.crypto_seed_matrix``.
     """
     omega = float(state_coordinate_omega)
     if phase_boundary_state is None:
@@ -330,16 +458,29 @@ def mint_sentinel_v10_bag(
         else:
             phase_boundary_state = "Nominal / Homeostatic (< 0.07 Ω)"
 
+    crypto_seed_matrix: dict[str, Any] = {
+        "salt_id": DEFAULT_SALT,
+        "doi_reference": doi_reference,
+        "zone_or_session_id": zone_or_session_id.strip().upper(),
+    }
+    sign_key = private_key_bytes
+    if ephemeral_session is not None:
+        sign_key = ephemeral_session.get("private_key_bytes", sign_key)
+        crypto_seed_matrix.update(
+            {
+                "root_hsm_key_id": ephemeral_session.get("root_hsm_key_id"),
+                "ephemeral_public_key_hex": ephemeral_session.get("public_key_hex"),
+                "root_binding_signature": ephemeral_session.get("root_binding_signature"),
+                "ephemeral_valid_until_utc_ms": ephemeral_session.get("valid_until_utc_ms"),
+            }
+        )
+
     attestation_header = {
         "protocol_version": PROTOCOL_VERSION_V10,
         "timestamp_utc_ms": int(time.time() * 1000),
         "sequence_step": int(sequence_step),
         "prev_bag_hash": prev_bag_hash,
-        "crypto_seed_matrix": {
-            "salt_id": DEFAULT_SALT,
-            "doi_reference": doi_reference,
-            "zone_or_session_id": zone_or_session_id.strip().upper(),
-        },
+        "crypto_seed_matrix": crypto_seed_matrix,
     }
     thermodynamic_state_vector = {
         "state_coordinate_omega": omega,
@@ -362,7 +503,7 @@ def mint_sentinel_v10_bag(
     canonical_row_hash = hashlib.sha256(_canonical_json(unsigned).encode("utf-8")).hexdigest()
     sig = sign_ed25519_canonical_hash(
         canonical_row_hash,
-        private_key_bytes=private_key_bytes,
+        private_key_bytes=sign_key,
         hmac_key=hmac_key,
     )
 
