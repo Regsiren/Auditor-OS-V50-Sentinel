@@ -25,6 +25,7 @@ from auditor_ai.adaptive_engine import (
     PrefillSentinelAuditor,
     ScaledAdaptiveSentinelAuditor,
     analyze_adaptive_dataframe,
+    analyze_dual_head_dataframe,
 )
 
 __all__ = [
@@ -39,6 +40,7 @@ __all__ = [
     "AdaptiveStepResult",
     "ScaledAdaptiveSentinelAuditor",
     "analyze_adaptive_dataframe",
+    "analyze_dual_head_dataframe",
     "PrefillSentinelAuditor",
     "PrefillAuditResult",
     "PrefillSeedState",

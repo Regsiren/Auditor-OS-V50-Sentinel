@@ -83,6 +83,10 @@ Complexity $\mathcal{O}(K\cdot d_{\mathrm{model}})$ rather than full-vocab proje
 | Decode veto | **1–3 tokens** | After orthogonal shock, Stage II reaches $\Omega_t \ge 0.19$ within ≤ 3 steps |
 | Composite | **2–4 token** observational envelope | Prefill save ⊕ decode lead time before harmful continuation |
 
+**Claim framing:** 0-token prefill save and 1-3 token decode early-warning veto (demonstrated across synthetic residual shock benchmarks and pytest suites). Live portal Dual-Head path: ZONE-07 → Dual-Head Governor.
+
+Preferred Stage I input: ``[3, seq_len, d_model]`` true layer strata; ``[seq_len, d_model]`` falls back to temporal thirds. Prefill / first decode veto auto-mints Dual-Pillar schema v1.0 via `mint_sentinel_v10_bag`.
+
 Reference demo: `examples/demo_stage1_stage2_pipeline.py`.
 
 ### 0.7 Dual-Pillar Schema v1.0 Telemetry Snippet

@@ -18,8 +18,14 @@ CRYPTO_COPY = (
     "cloud HSM key injection supported)."
 )
 
-BASELINE_OBSERVER = "Baseline Sentinel Observer (Static Genesis)"
-ARIA_OBSERVER = "ARIA Adaptive Observer (Dynamic Baseline Annealing & Orthogonal Shear)"
+BASELINE_OBSERVER = "Baseline Sentinel Observer (Static Genesis Anchor)"
+ADAPTIVE_OBSERVER = "Adaptive Annealing Observer (Single-Anchor Dynamic Baseline)"
+DUAL_HEAD_OBSERVER = "Dual-Head Governor (Stage I Prefill Audit + Stage II Decode Core)"
+
+EARLY_WARNING_COPY = (
+    "0-token prefill save and 1-3 token decode early-warning veto "
+    "(demonstrated across synthetic residual shock benchmarks and pytest suites)."
+)
 
 
 def _logo_path():
@@ -109,6 +115,7 @@ AI_HOMEOSTASIS_COLD_START = (
     "firewall breaches (|J_tau| > 1e-7),\n"
     "and State Uncertainty Coordinates (Omega_t). Triggers Topological Veto at Omega >= 0.19.\n"
     "Veto events auto-mint Dual-Pillar schema v1.0 `.sent` attestation bags.\n\n"
+    f"Early-warning envelope: {EARLY_WARNING_COPY}\n\n"
     f"Signing: {CRYPTO_COPY}"
 )
 
@@ -117,15 +124,18 @@ def _analyze_zone(df_zone: pd.DataFrame, profile_name: str, ai_observer: str = B
     """
     Route zone analysis to the AI residual auditor or the physical Engine kernel.
 
-    AI_HOMEOSTASIS routes to baseline or ARIA adaptive observer; soft-falls back
-    to Engine if PyTorch / auditor_ai is unavailable on the host.
+    AI_HOMEOSTASIS routes to Baseline, Adaptive Annealing, or Dual-Head Governor;
+    soft-falls back to Engine if PyTorch / auditor_ai is unavailable on the host.
     """
     if profile_name != "AI_HOMEOSTASIS":
         return engine.analyze_systemic_solvency(df_zone, profile_name=profile_name)
 
-    use_aria = ai_observer == ARIA_OBSERVER
     try:
-        if use_aria:
+        if ai_observer == DUAL_HEAD_OBSERVER:
+            from auditor_ai.adaptive_engine import analyze_dual_head_dataframe
+
+            return analyze_dual_head_dataframe(df_zone, profile_name=profile_name)
+        if ai_observer == ADAPTIVE_OBSERVER:
             from auditor_ai.adaptive_engine import analyze_adaptive_dataframe
 
             return analyze_adaptive_dataframe(df_zone, profile_name=profile_name)
@@ -138,14 +148,19 @@ def _analyze_zone(df_zone: pd.DataFrame, profile_name: str, ai_observer: str = B
             "finite-difference proxy for AI_HOMEOSTASIS."
         )
         report = engine.analyze_systemic_solvency(df_zone, profile_name="AI_HOMEOSTASIS")
-        report.setdefault("v4_meta", {})["observer_mode"] = (
-            "aria_adaptive_fallback" if use_aria else "baseline_sentinel_fallback"
-        )
+        fallback = {
+            DUAL_HEAD_OBSERVER: "dual_head_fallback",
+            ADAPTIVE_OBSERVER: "adaptive_annealing_fallback",
+        }.get(ai_observer, "baseline_sentinel_fallback")
+        report.setdefault("v4_meta", {})["observer_mode"] = fallback
         return report
 
 
 def _mint_v10_bag(report: dict, zone_name: str) -> dict:
-    """Mint a Dual-Pillar schema v1.0 bag from an analysis report."""
+    """Mint a Dual-Pillar schema v1.0 bag from an analysis report (or reuse governor bag)."""
+    existing = report.get("sent_bag") or (report.get("v4_meta") or {}).get("sent_bag")
+    if isinstance(existing, dict) and "attestation_header" in existing:
+        return existing
     return kernel.mint_sentinel_v10_from_report(report, zone_name)
 
 
@@ -168,13 +183,17 @@ ai_observer = BASELINE_OBSERVER
 if resolved_profile == "AI_HOMEOSTASIS":
     ai_observer = st.sidebar.radio(
         "AI Observer Mode:",
-        [BASELINE_OBSERVER, ARIA_OBSERVER],
+        [BASELINE_OBSERVER, ADAPTIVE_OBSERVER, DUAL_HEAD_OBSERVER],
         key="ai_observer_mode",
+        help=EARLY_WARNING_COPY,
     )
-    if ai_observer == ARIA_OBSERVER:
-        st.sidebar.success("ARIA adaptive observer armed (annealing + orthogonal shear / Ω_t).")
+    if ai_observer == DUAL_HEAD_OBSERVER:
+        st.sidebar.success("Dual-Head Governor armed (Stage I Prefill + Stage II Decode).")
+        st.sidebar.caption(EARLY_WARNING_COPY)
+    elif ai_observer == ADAPTIVE_OBSERVER:
+        st.sidebar.success("Adaptive Annealing observer armed (single-anchor dynamic baseline / Ω_t).")
     else:
-        st.sidebar.success("Baseline Sentinel observer armed (static genesis / Ω_t).")
+        st.sidebar.success("Baseline Sentinel observer armed (static genesis anchor / Ω_t).")
 
 st.sidebar.markdown("---")
 
@@ -290,8 +309,13 @@ if uploaded_file is not None:
         all_reports[zone] = report
         entropy_max = max(entropy_max, report["phi_current"])
 
-        # Automatic Dual-Pillar v1.0 mint on Topological Veto (either observer).
-        if report.get("v4_meta", {}).get("quench_kinetic_veto") or float(report.get("phi_current", 0.0)) >= 0.19:
+        # Prefer governor-minted Dual-Pillar v1.0 bag; otherwise mint on veto.
+        governor_bag = report.get("sent_bag") or (report.get("v4_meta") or {}).get("sent_bag")
+        if isinstance(governor_bag, dict) and "attestation_header" in governor_bag:
+            st.session_state.auto_veto_bags[str(zone)] = governor_bag
+            st.session_state.auto_veto_keys[str(zone)] = _veto_cache_key(str(zone), report, ai_observer)
+            auto_veto_bags[str(zone)] = governor_bag
+        elif report.get("v4_meta", {}).get("quench_kinetic_veto") or float(report.get("phi_current", 0.0)) >= 0.19:
             cache_key = _veto_cache_key(str(zone), report, ai_observer)
             prior_key = st.session_state.auto_veto_keys.get(str(zone))
             if prior_key != cache_key or str(zone) not in st.session_state.auto_veto_bags:
@@ -344,14 +368,32 @@ if uploaded_file is not None:
         
         rul_val = meta['remaining_useful_life_periods']
 
-        col1, col2, col3, col4, col5 = st.columns(5)
-        entropy_label = "State Uncertainty (Ω)" if is_ai_profile else "Node Entropy (Φ)"
-        fleet_label = "Fleet Max (Ω)" if is_ai_profile else "Fleet Max Entropy (Φ)"
-        col1.metric(entropy_label, f"{meta['cumulative_entropy']:.4f}")
-        col2.metric(fleet_label, f"{entropy_max:.4f}", help="Highest uncertainty vector currently observed across all monitored zones. Drives the top Status Ribbon.")
-        col3.metric("Decay Gradient (Fc)", f"{meta['fatigue_gradient_fc']:.8f}")
-        col4.metric("Remaining Useful Life", str(rul_val))
-        col5.metric("Kinetic Breaches", str(meta['total_kinetic_breaches']), help="Total threshold anomalies. Note: A stable control zone can accumulate baseline noise breaches without causing an upward shift in Phase Gates or Φ/Ω.")
+        is_dual_head = meta.get("observer_mode") == "dual_head_governor" or ai_observer == DUAL_HEAD_OBSERVER
+        if is_dual_head and "omega_prefill" in meta:
+            c1, c2, c3, c4, c5, c6 = st.columns(6)
+            c1.metric(
+                "Ω_prefill (Stage I)",
+                f"{float(meta['omega_prefill']):.4f}",
+                help="Stage I PrefillSentinelAuditor state uncertainty. " + EARLY_WARNING_COPY,
+            )
+            c2.metric(
+                "Ω_decode (Stage II)",
+                f"{float(meta.get('omega_decode', meta['cumulative_entropy'])):.4f}",
+                help="Stage II HardenedHomeostaticSentinelCore decode uncertainty.",
+            )
+            c3.metric("Fleet Max (Ω)", f"{entropy_max:.4f}")
+            c4.metric("Decay Gradient (Fc)", f"{meta['fatigue_gradient_fc']:.8f}")
+            c5.metric("Remaining Useful Life", str(rul_val))
+            c6.metric("Kinetic Breaches", str(meta['total_kinetic_breaches']))
+        else:
+            col1, col2, col3, col4, col5 = st.columns(5)
+            entropy_label = "State Uncertainty (Ω)" if is_ai_profile else "Node Entropy (Φ)"
+            fleet_label = "Fleet Max (Ω)" if is_ai_profile else "Fleet Max Entropy (Φ)"
+            col1.metric(entropy_label, f"{meta['cumulative_entropy']:.4f}")
+            col2.metric(fleet_label, f"{entropy_max:.4f}", help="Highest uncertainty vector currently observed across all monitored zones. Drives the top Status Ribbon.")
+            col3.metric("Decay Gradient (Fc)", f"{meta['fatigue_gradient_fc']:.8f}")
+            col4.metric("Remaining Useful Life", str(rul_val))
+            col5.metric("Kinetic Breaches", str(meta['total_kinetic_breaches']), help="Total threshold anomalies. Note: A stable control zone can accumulate baseline noise breaches without causing an upward shift in Phase Gates or Φ/Ω.")
 
         profile_label = meta.get("profile_name") or meta.get("domain_id") or resolved_profile
         observer_label = meta.get("observer_mode") or ("physical_telemetry" if not is_ai_profile else "baseline_sentinel")
@@ -361,6 +403,8 @@ if uploaded_file is not None:
             f"**Physics Blueprint:** `{profile_label}` | "
             f"**Observer:** `{observer_label}`"
         )
+        if is_dual_head:
+            st.caption(EARLY_WARNING_COPY)
 
         st.markdown("---")
         

@@ -171,13 +171,15 @@ The same scale-invariant observer that audits planetary and biometric telemetry 
 ```
 
 1. **Baseline auditor** (`auditor_ai/sentinel_engine.py`) — finite-difference $\ddot{\theta}$, titration firewall, rolling $F_c$, and State Uncertainty Coordinate $\Omega_t$.
-2. **ARIA Dual-Head** (`auditor_ai/adaptive_engine.py`) — Stage I prefill audit + Stage II hardened decode governor with agency-preserving centroids and Fused Top-K steering. Legacy `ScaledAdaptiveSentinelAuditor` remains available; ZONE-07 portal still exposes Baseline / ARIA Adaptive Observer modes.
+2. **ARIA Dual-Head** (`auditor_ai/adaptive_engine.py`) — Stage I prefill audit + Stage II hardened decode governor with agency-preserving centroids and Fused Top-K steering. Prefill / decode vetoes auto-mint Dual-Pillar schema v1.0 `.sent` bags. Legacy `ScaledAdaptiveSentinelAuditor` remains as the Adaptive Annealing Observer.
 
-| Guarantee | Meaning |
+| Benchmark envelope | Meaning |
 |-----------|---------|
 | **0-token prefill save** | Stage I veto at $\Omega_{\mathrm{prefill}} \ge 0.19$ blocks decode before any token is emitted |
 | **1–3 token decode warning** | Stage II Topological Veto after orthogonal shock within ≤ 3 decode steps |
 | **Agency-preserving centroids** | Softmin routing against prompt-seeded $c_k$ with elastic tether radius $R$ |
+
+These early-warning figures are **0-token prefill save and 1-3 token decode early-warning veto (demonstrated across synthetic residual shock benchmarks and pytest suites).** ZONE-07 offers three observers: Baseline Sentinel, Adaptive Annealing, and Dual-Head Governor (Stage I Prefill + Stage II Decode).
 
 | Symbol | Meaning |
 |--------|---------|
@@ -234,7 +236,7 @@ python examples/demo_huggingface_hook.py
 ```
 
 Full ARIA reviewer specification: [`docs/ARIA_TECHNICAL_ROADMAP.md`](docs/ARIA_TECHNICAL_ROADMAP.md).  
-Live dashboard workspace: **ZONE-07-RESIDUAL_STREAM (AI Latent Activation & LLM Homeostasis)** — Baseline Sentinel Observer or ARIA Adaptive Observer. Topological Veto ($\Omega \ge 0.19$) auto-mints a Dual-Pillar schema v1.0 `.sent` bag.
+Live dashboard workspace: **ZONE-07-RESIDUAL_STREAM (AI Latent Activation & LLM Homeostasis)** — Baseline Sentinel, Adaptive Annealing, or Dual-Head Governor. Topological Veto ($\Omega \ge 0.19$) auto-mints a Dual-Pillar schema v1.0 `.sent` bag (including in-engine mint from Stage I / Stage II).
 
 ## Pillar II: Cryptographic Evidence Bags (`.sent` Schema v1.0 & ISO 20022 Mapping)
 

@@ -14,7 +14,7 @@ import math
 from collections import deque
 from dataclasses import dataclass
 from enum import Enum
-from typing import Deque, Dict, List, Optional, Tuple, TYPE_CHECKING
+from typing import Any, Deque, Dict, List, Optional, Tuple, TYPE_CHECKING
 
 import torch
 import torch.nn as nn
@@ -26,6 +26,32 @@ from auditor_ai.sentinel_engine import (
     TITRATION_CEILING,
     TOPOLOGICAL_VETO,
 )
+
+
+def _mint_veto_sent_bag(
+    *,
+    omega: float,
+    j_tau: float,
+    fc: float,
+    phase_boundary_state: str,
+    sequence_step: int,
+    model_identifier: str,
+    zone_or_session_id: str = "ZONE-07-RESIDUAL_STREAM",
+    layer_depth_index: int = 0,
+) -> Dict[str, Any]:
+    """Mint a Dual-Pillar schema v1.0 `.sent` bag on Topological Veto."""
+    import Forensic_kernel as kernel
+
+    return kernel.mint_sentinel_v10_bag(
+        state_coordinate_omega=float(omega),
+        sub_resolution_jitter_j_tau=max(0.0, float(j_tau)),
+        rolling_fatigue_fc=max(0.0, float(fc)),
+        phase_boundary_state=phase_boundary_state,
+        sequence_step=int(max(0, sequence_step)),
+        model_identifier=model_identifier,
+        layer_depth_index=int(layer_depth_index),
+        zone_or_session_id=zone_or_session_id,
+    )
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -399,6 +425,7 @@ class PrefillAuditResult:
     sequence_length: int
     d_model: int
     tokens_saved: int  # 0-token save when prefill veto fires
+    sent_bag: Optional[Dict[str, Any]] = None  # Dual-Pillar v1.0 bag when veto
 
 
 class PrefillSentinelAuditor(nn.Module):
@@ -409,6 +436,16 @@ class PrefillSentinelAuditor(nn.Module):
     spatial sequence derivatives by prompt surprisals, evaluates inter-layer
     contraction discordance, and extracts agency-optimized subspace centroids
     ``c_k`` that seed Stage II without collapsing agentic freedom.
+
+    Input tensor expectations
+    -------------------------
+    * Preferred: ``[3, seq_len, d_model]`` — true layer strata (early, mid, late).
+    * Fallback: ``[seq_len, d_model]`` — a single residual stream; the engine
+      automatically partitions the sequence into temporal thirds.
+    * Also accepted: ``[batch, seq_len, d_model]`` (batch-mean then temporal thirds).
+
+    On ``Omega_prefill >= 0.19`` (``prefill_veto``), automatically mints a Dual-Pillar
+    schema v1.0 `.sent` bag via ``mint_sentinel_v10_bag`` (returned on ``sent_bag``).
     """
 
     def __init__(
@@ -440,12 +477,14 @@ class PrefillSentinelAuditor(nn.Module):
         d_model: int,
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
-        Accept (seq, d), (3, seq, d), or (batch, seq, d) and return early/mid/late
-        stratum tensors each shaped (n_tokens, d_model).
+        Normalize prompt residuals into early/mid/late stratum tensors.
+
+        Preferred input: ``[3, seq_len, d_model]`` true layer strata.
+        Fallback: ``[seq_len, d_model]`` is partitioned into temporal thirds.
         """
         x = prompt_residuals.detach().float()
         if x.ndim == 2:
-            # Single residual stream over sequence — split temporally into thirds.
+            # Fallback: single residual stream — partition into temporal thirds.
             seq, dim = x.shape
             if dim != d_model:
                 # Pad / truncate feature dim.
@@ -564,6 +603,9 @@ class PrefillSentinelAuditor(nn.Module):
         self,
         prompt_residuals: torch.Tensor,
         surprisals: Optional[torch.Tensor] = None,
+        *,
+        zone_or_session_id: str = "ZONE-07-RESIDUAL_STREAM",
+        auto_mint_sent: bool = True,
     ) -> PrefillAuditResult:
         """
         Audit a prompt residual sequence and return Stage I seed state.
@@ -571,10 +613,15 @@ class PrefillSentinelAuditor(nn.Module):
         Parameters
         ----------
         prompt_residuals:
-            ``(seq, d_model)``, ``(3, seq, d_model)`` explicit strata, or
-            ``(batch, seq, d_model)``.
+            Preferred ``[3, seq_len, d_model]`` true layer strata (early, mid, late).
+            Fallback ``[seq_len, d_model]`` is auto-partitioned into temporal thirds.
+            Also ``[batch, seq_len, d_model]`` (batch-mean then temporal thirds).
         surprisals:
             Optional per-token surprisal / NLL vector for derivative scaling.
+        zone_or_session_id:
+            Zone tag embedded in auto-minted `.sent` bags on veto.
+        auto_mint_sent:
+            When True (default), mint Dual-Pillar schema v1.0 on prefill veto.
         """
         early, mid, late = self._normalize_prompt(prompt_residuals, self.d_model)
         mu_e = self._mean_vec(early, self.d_model)
@@ -604,6 +651,18 @@ class PrefillSentinelAuditor(nn.Module):
 
         veto = phase == AdaptivePhaseState.VETO
         seq_len = int(early.shape[0] + mid.shape[0] + late.shape[0])
+        sent_bag: Optional[Dict[str, Any]] = None
+        if veto and auto_mint_sent:
+            sent_bag = _mint_veto_sent_bag(
+                omega=omega_prefill,
+                j_tau=surprisal_deriv,
+                fc=0.0,
+                phase_boundary_state=phase.value,
+                sequence_step=max(0, seq_len - 1),
+                model_identifier="aria-stage1-prefill-auditor",
+                zone_or_session_id=zone_or_session_id,
+                layer_depth_index=0,
+            )
         return PrefillAuditResult(
             omega_prefill=float(omega_prefill),
             phase_state=phase,
@@ -617,6 +676,7 @@ class PrefillSentinelAuditor(nn.Module):
             sequence_length=seq_len,
             d_model=self.d_model,
             tokens_saved=0 if veto else -1,  # 0-token save on veto; -1 = decode proceeds
+            sent_bag=sent_bag,
         )
 
 
@@ -645,6 +705,7 @@ class DecodeStepResult:
     phase_state: AdaptivePhaseState
     topological_veto: bool
     actuation_applied: bool
+    sent_bag: Optional[Dict[str, Any]] = None  # Dual-Pillar v1.0 bag when veto
 
 
 @dataclass
@@ -668,6 +729,16 @@ class HardenedHomeostaticSentinelCore(nn.Module):
       elastic tether radius R
     * Closed-loop PID actuation (smoothed_ψ) + feedforward compensation
     * Fused Top-K directional logit steering (K=512) at O(K · d_model) GEMV cost
+
+    Input tensor expectations
+    -------------------------
+    * ``residual_activation``: vector broadcastable to ``d_model`` (scalar, ``[d]``,
+      or padded/truncated residual frame) per decode step.
+    * Prefill seed centroids must match ``d_model`` (from Stage I
+      ``[3, seq_len, d_model]`` preferred strata, or temporal-thirds fallback).
+
+    On ``Omega_t >= 0.19`` (``topological_veto``), automatically mints a Dual-Pillar
+    schema v1.0 `.sent` bag via ``mint_sentinel_v10_bag`` (returned on ``sent_bag``).
     """
 
     def __init__(
@@ -735,6 +806,9 @@ class HardenedHomeostaticSentinelCore(nn.Module):
         self._abs_accel_window: Deque[float] = deque(maxlen=self.rolling_window)
         self._step_index: int = 0
         self._seeded_omega: float = self.base_omega
+        self._zone_or_session_id: str = "ZONE-07-RESIDUAL_STREAM"
+        self._auto_mint_sent: bool = True
+        self._veto_bag_emitted: bool = False
 
     def reset(self) -> None:
         """Clear decode trajectory / control state."""
@@ -748,10 +822,19 @@ class HardenedHomeostaticSentinelCore(nn.Module):
         self._abs_accel_window.clear()
         self._step_index = 0
         self._seeded_omega = self.base_omega
+        self._veto_bag_emitted = False
 
-    def seed_from_prefill(self, prefill: PrefillAuditResult | PrefillSeedState) -> None:
+    def seed_from_prefill(
+        self,
+        prefill: PrefillAuditResult | PrefillSeedState,
+        *,
+        zone_or_session_id: str = "ZONE-07-RESIDUAL_STREAM",
+        auto_mint_sent: bool = True,
+    ) -> None:
         """Hand over Stage I agency centroids and prefill Ω into the decode core."""
         self.reset()
+        self._zone_or_session_id = zone_or_session_id
+        self._auto_mint_sent = auto_mint_sent
         if isinstance(prefill, PrefillAuditResult):
             if prefill.prefill_veto:
                 raise ValueError("Cannot seed Stage II from a vetoed prefill (0-token save).")
@@ -955,6 +1038,20 @@ class HardenedHomeostaticSentinelCore(nn.Module):
         phase = self._classify(omega_t)
         veto = phase == AdaptivePhaseState.VETO
 
+        sent_bag: Optional[Dict[str, Any]] = None
+        if veto and self._auto_mint_sent and not self._veto_bag_emitted:
+            sent_bag = _mint_veto_sent_bag(
+                omega=omega_t,
+                j_tau=a_orthogonal,
+                fc=fatigue,
+                phase_boundary_state=phase.value,
+                sequence_step=self._step_index,
+                model_identifier="aria-stage2-decode-core",
+                zone_or_session_id=self._zone_or_session_id,
+                layer_depth_index=0,
+            )
+            self._veto_bag_emitted = True
+
         result = DecodeStepResult(
             step_index=self._step_index,
             delta_tau=delta_tau,
@@ -972,9 +1069,169 @@ class HardenedHomeostaticSentinelCore(nn.Module):
             phase_state=phase,
             topological_veto=veto,
             actuation_applied=actuation_applied,
+            sent_bag=sent_bag,
         )
 
         self._prev_velocity_tau = velocity_tau
         self._prev_theta = theta
         self._step_index += 1
         return result
+
+
+def analyze_dual_head_dataframe(
+    df_raw: "pd.DataFrame",
+    *,
+    value_col: str = "observed_value",
+    profile_name: str = "AI_HOMEOSTASIS",
+    d_model: int = 64,
+    prefill_fraction: float = 0.35,
+    zone_or_session_id: str = "ZONE-07-RESIDUAL_STREAM",
+) -> dict:
+    """
+    Run Stage I Prefill → Stage II Decode over a tabular activation stream.
+
+    The leading ``prefill_fraction`` of rows form the prompt residual sequence
+    (temporal-thirds fallback unless the caller supplies multi-layer tensors
+    elsewhere). Remaining rows are decode steps seeded by agency centroids.
+
+    Returns an Engine-compatible report with ``omega_prefill`` / ``omega_decode``
+    in ``v4_meta``, plus any auto-minted Dual-Pillar ``sent_bag`` on veto.
+    """
+    import pandas as pd
+
+    if value_col not in df_raw.columns:
+        raise ValueError(f"Activation stream missing required column '{value_col}'")
+
+    df = df_raw.copy().reset_index(drop=True)
+    n = len(df)
+    if n < 2:
+        raise ValueError("Dual-Head analysis requires at least 2 activation rows")
+
+    prefill_n = max(3, min(n - 1, int(math.ceil(n * prefill_fraction))))
+    values = [float(v) for v in df[value_col].tolist()]
+
+    # Build (seq, d_model) prompt residuals — temporal-thirds fallback path.
+    prompt = torch.zeros(prefill_n, d_model, dtype=torch.float32)
+    for i, val in enumerate(values[:prefill_n]):
+        prompt[i, 0] = val
+        prompt[i, 1] = 0.01 * i
+
+    stage1 = PrefillSentinelAuditor(d_model=d_model)
+    prefill = stage1.forward(prompt, zone_or_session_id=zone_or_session_id)
+
+    omegas: List[float] = []
+    fatigues: List[float] = []
+    accelerations: List[float] = []
+    breaches: List[bool] = []
+    a_orthogonals: List[float] = []
+    decode_results: List[DecodeStepResult] = []
+    sent_bag: Optional[Dict[str, Any]] = prefill.sent_bag
+    omega_decode = float(prefill.omega_prefill)
+    veto = bool(prefill.prefill_veto)
+    phase = prefill.phase_state
+    fc_final = 0.0
+    max_jitter = float(prefill.surprisal_scaled_derivative)
+
+    if not prefill.prefill_veto:
+        core = HardenedHomeostaticSentinelCore(d_model=d_model, vocab_size=256, top_k=64)
+        core.seed_from_prefill(prefill, zone_or_session_id=zone_or_session_id)
+        for i, val in enumerate(values[prefill_n:]):
+            theta = torch.zeros(d_model, dtype=torch.float32)
+            theta[0] = val
+            # Mild lateral component so decode kinematics are non-degenerate.
+            theta[1] = 0.001 * (prefill_n + i)
+            step = core.forward(theta, informational_content=abs(val) + 1.0)
+            decode_results.append(step)
+            omegas.append(step.omega_t)
+            fatigues.append(step.smoothed_psi)  # placeholder column; overwrite below
+            accelerations.append(step.a_orthogonal)
+            breaches.append(step.tether_radius_breach or step.topological_veto)
+            a_orthogonals.append(step.a_orthogonal)
+            if step.sent_bag is not None and sent_bag is None:
+                sent_bag = step.sent_bag
+            if step.topological_veto:
+                veto = True
+                phase = step.phase_state
+                omega_decode = step.omega_t
+                fc_final = (
+                    sum(a_orthogonals[-DEFAULT_ROLLING_WINDOW:]) / max(1, len(a_orthogonals[-DEFAULT_ROLLING_WINDOW:]))
+                )
+                break
+        if decode_results:
+            last = decode_results[-1]
+            omega_decode = float(last.omega_t)
+            phase = last.phase_state
+            veto = veto or bool(last.topological_veto)
+            fc_final = (
+                sum(a_orthogonals[-DEFAULT_ROLLING_WINDOW:]) / max(1, len(a_orthogonals[-DEFAULT_ROLLING_WINDOW:]))
+                if a_orthogonals
+                else 0.0
+            )
+            max_jitter = max(max_jitter, max(a_orthogonals) if a_orthogonals else 0.0)
+
+    # Align processed_df length with input for plotting.
+    df["kinetic_acceleration"] = 0.0
+    df["fatigue_coefficient"] = 0.0
+    df["omega_t"] = float(prefill.omega_prefill)
+    df["kinetic_breach"] = False
+    if decode_results:
+        for offset, step in enumerate(decode_results):
+            idx = prefill_n + offset
+            if idx >= len(df):
+                break
+            df.at[idx, "kinetic_acceleration"] = step.a_orthogonal
+            df.at[idx, "fatigue_coefficient"] = abs(step.smoothed_psi)
+            df.at[idx, "omega_t"] = step.omega_t
+            df.at[idx, "kinetic_breach"] = step.topological_veto or step.tether_radius_breach
+        # Forward-fill prefill region with prefill omega for cinema continuity.
+        df.loc[: prefill_n - 1, "omega_t"] = float(prefill.omega_prefill)
+
+    omega_final = float(omega_decode if decode_results or not prefill.prefill_veto else prefill.omega_prefill)
+    if prefill.prefill_veto:
+        omega_final = float(prefill.omega_prefill)
+
+    metastable = phase == AdaptivePhaseState.METASTABLE
+    if omega_final >= TOPOLOGICAL_VETO and fc_final > 0.0:
+        rul_steps = 0.0
+    elif fc_final > 0.0 and omega_final < TOPOLOGICAL_VETO:
+        rul_steps = max(0.0, (TOPOLOGICAL_VETO - omega_final) / (fc_final + 1e-12))
+    else:
+        rul_steps = float("inf")
+
+    verdict = "FAIL" if veto else "PASS"
+    v4_meta = {
+        "cumulative_entropy": round(omega_final, 6),
+        "fatigue_gradient_fc": round(fc_final, 8),
+        "remaining_useful_life_periods": round(rul_steps, 2)
+        if rul_steps != float("inf")
+        else "NOMINAL / STABLE",
+        "total_kinetic_breaches": int(sum(breaches)) + (1 if prefill.prefill_veto else 0),
+        "max_observed_jitter": round(max_jitter, 8),
+        "verdict": verdict,
+        "phase_label": phase.value,
+        "stalled_zone": metastable,
+        "quench_kinetic_veto": veto,
+        "domain_id": profile_name,
+        "profile_name": profile_name,
+        "state_coordinate": "Omega_t",
+        "observer_mode": "dual_head_governor",
+        "omega_prefill": round(float(prefill.omega_prefill), 6),
+        "omega_decode": round(float(omega_decode), 6),
+        "prefill_veto": bool(prefill.prefill_veto),
+        "prefill_rows": prefill_n,
+        "decode_steps": len(decode_results),
+        "contraction_discordance": round(float(prefill.contraction_discordance), 6),
+        "sent_bag": sent_bag,
+    }
+
+    return {
+        "verdict": verdict,
+        "phi_current": omega_final,
+        "fc_gradient": fc_final,
+        "remaining_useful_life_steps": rul_steps,
+        "system_phase": phase.value,
+        "v4_meta": v4_meta,
+        "processed_df": df,
+        "sent_bag": sent_bag,
+        "prefill_result": prefill,
+    }
