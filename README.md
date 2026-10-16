@@ -1,12 +1,64 @@
-# The Sentinel Protocol (Auditor OS V50-S Core)
+# Auditor-OS-V50-Sentinel
+
+**Open Specification & Developer SDK for SentinelGate runtime governance**
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23185495.svg)](https://doi.org/10.5281/zenodo.23185495)
+[![AI Safety Architecture](https://zenodo.org/badge/DOI/10.5281/zenodo.23315812.svg)](https://doi.org/10.5281/zenodo.23315812)
+[![RFC-001](https://zenodo.org/badge/DOI/10.5281/zenodo.23314793.svg)](https://doi.org/10.5281/zenodo.23314793)
 
 > **Scale-Invariant Thermodynamic Attribution: Mapping Non-Linear Phase Transitions in Macro-Systems via Stateless Telemetry Auditing**
 
-This repository contains the reference implementation framework for the **V50 Sentinel (V50-S) Core**, a stateless, hardware-agnostic telemetry cross-examination engine designed to monitor structural and environmental stability boundaries.
+This repository is the public **open specification**, **RFC-001 `.sent` schema**, and **`sentinelgate` Python SDK** for SentinelGate runtime governance—alongside the V50-S reference kernel for thermodynamic telemetry attestation across physical infrastructure and autonomous compute.
 
 **Live Operations Portal:** [sentinel.thohatventures.com](https://sentinel.thohatventures.com) — hosted Streamlit interface for multi-zone phase analysis and `.sent` evidence export (no local install required).
+
+## Install the Developer SDK
+
+```bash
+pip install sentinelgate
+```
+
+Or from this repository:
+
+```bash
+pip install -e ./sdk
+```
+
+### Drop-in OpenAI-compatible client
+
+```python
+import os
+from sentinelgate import SentinelGate, KinematicVetoError
+
+client = SentinelGate(
+    api_key=os.environ["SENTINEL_API_KEY"],
+    base_url="https://api.sentinelgate.dev/v1",
+)
+
+try:
+    completion = client.chat.completions.create(
+        model="meta-llama/Llama-3.3-70B-Instruct",
+        messages=[{"role": "user", "content": "Summarize fiduciary telemetry controls."}],
+    )
+    print(completion.choices[0].message.content)
+except KinematicVetoError as e:
+    print(e.omega_t, e.intercept_stage, e.canonical_hash)
+```
+
+Offline third-party verification of a `.sent` bag (no gateway required):
+
+```bash
+python examples/verify_offline.py
+```
+
+### Canonical citations
+
+| Record | DOI / link |
+|--------|------------|
+| AI Safety Architecture (V50-S Sentinel Core) | [10.5281/zenodo.23315812](https://doi.org/10.5281/zenodo.23315812) |
+| RFC-001 `.sent` Container Specification | [10.5281/zenodo.23314793](https://doi.org/10.5281/zenodo.23314793) |
+| Master Whitepaper (Sovereign Oracle Protocol) | [10.5281/zenodo.23185495](https://doi.org/10.5281/zenodo.23185495) |
+| Fiduciary Theory of Entropy (RWA) | [10.5281/zenodo.20562620](https://doi.org/10.5281/zenodo.20562620) · [SSRN 6704958](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6704958) |
 
 ## The Blind Pipe Problem (TLS/HTTPS) vs. `.sent` Payload Security
 
@@ -22,6 +74,11 @@ $$E \ge k_B T \ln 2$$
 
 ```
 Auditor-OS-V50-Sentinel/
+├── sdk/                        # sentinelgate Python SDK (v0.1.0) — RFC-001 verify + client
+├── spec/                       # Hardened .sent JSON Schema (RFC-001), eBPF note, ISO mapper
+├── examples/                   # Offline verify + demos (residual, HF, ARIA, Stage I/II, ISO)
+│   ├── verify_offline.py       # Third-party offline .sent verification
+│   └── sample_stage_i_veto.*   # Verified Stage I sample bag + public PEM
 ├── App.py                      # Streamlit operations interface (ZONE-07 AI workspace)
 ├── Engine.py                   # Stateless fiduciary kernel (V50-S core)
 ├── Forensic_kernel.py          # Row-hash chain + Dual-Pillar .sent v1.0 mint / Ed25519
@@ -33,9 +90,7 @@ Auditor-OS-V50-Sentinel/
 ├── auditor_ai/                 # AI Homeostasis + ARIA adaptive alignment
 │   ├── sentinel_engine.py      # Baseline residual-stream auditor (Ω_t)
 │   └── adaptive_engine.py      # ARIA: Stage I Prefill + Stage II Decode governor
-├── examples/                   # Runnable demos (residual, HF, ARIA, Stage I/II, ISO)
 ├── scripts/                    # Deterministic corpus generators
-├── spec/                       # .sent schema, eBPF note, ISO 20022 mapper
 ├── tests/                      # Physical + AI + schema tests (torch soft-skip)
 ├── requirements.txt            # Core runtime dependencies
 ├── requirements-ai.txt         # Optional PyTorch / transformers extras
@@ -44,11 +99,6 @@ Auditor-OS-V50-Sentinel/
 ├── assets/                     # Brand assets (sidebar logo)
 ├── data/                       # Sample & generated telemetry streams
 └── docs/                       # White papers & specialized addendums
-    ├── README.md               # Documentation index & contribution horizons
-    ├── THEORY.md               # Core mathematical framework
-    ├── ARIA_TECHNICAL_ROADMAP.md
-    ├── TEE_ENCLAVE_SPEC.md       # Confidential compute observer trust boundary
-    └── APPENDIX_B_BIOMETRIC_SENTINEL.md
 ```
 
 ### 📑 Theoretical Foundations & Public Records

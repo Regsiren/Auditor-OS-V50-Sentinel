@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sentinelgate"
+version = "0.1.0"
+description = "In-memory runtime firewall and RFC-001 cryptographic attestation client for autonomous AI agents."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "Apache-2.0" }
+authors = [
+    { name = "Thohat Ventures", email = "info@thohatventures.com" }
+]
+keywords = ["ai-safety", "firewall", "llm-guardrails", "attestation", "ed25519", "rfc-001"]
+dependencies = [
+    "openai>=1.20.0",
+    "cryptography>=41.0.0",
+    "httpx>=0.25.0"
+]
+
+[project.urls]
+Homepage = "https://sentinelgate.dev"
+Repository = "https://github.com/Regsiren/Auditor-OS-V50-Sentinel"
+Documentation = "https://doi.org/10.5281/zenodo.23315812"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sentinelgate"]

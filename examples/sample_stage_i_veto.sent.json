@@ -1,0 +1,39 @@
+{
+  "attestation_header": {
+    "protocol_version": "THOHAT-V50-SENTINEL/1.0",
+    "timestamp_utc_ms": 1792135669979,
+    "sequence_step": 1,
+    "prev_bag_hash": null,
+    "crypto_seed_matrix": {
+      "salt_id": "THOHAT-2026-SIG",
+      "doi_reference": "10.5281/zenodo.23315812"
+    }
+  },
+  "thermodynamic_state_vector": {
+    "state_coordinate_omega": 0.445642,
+    "sub_resolution_jitter_j_tau": 133.484999,
+    "rolling_fatigue_fc": 307.478508,
+    "phase_boundary_state": "Topological Veto (\u2265 0.19 \u03a9)"
+  },
+  "execution_context": {
+    "model_identifier": "sentinel-guard-v50",
+    "process_id": "10420",
+    "layer_depth_index": 0,
+    "hardware_node_id": "gateway-node-uk-01"
+  },
+  "cryptographic_attestation": {
+    "canonical_row_hash": "8f42bab97e4e8cd4fb2f96df1637254c075a95d26e81d92580e4e685afe8000d",
+    "signature_algorithm": "Ed25519",
+    "digital_signature": "56f283f6aa5423ff294e0f0ef7a461d84b2fe1fca516dc05113420acc3751ad2dc14f4aaede2a7471cccc2f71c7c0a0bd115341bbb61c20af4143af02e0bdc08",
+    "public_key_hex": "c28a8963cbdf07de865f5bfb2733ca21137a2151739798abb19485bf86e83e24"
+  },
+  "gateway_envelope": {
+    "intercept_stage": "Stage_I_Prefill",
+    "lead_time": "0_tokens",
+    "action": "EVICT_SOCKET_DROP",
+    "omega_t": 0.445642,
+    "a_perp": 133.484999,
+    "threshold": 0.19,
+    "canonical_hash": "8f42bab97e4e8cd4fb2f96df1637254c075a95d26e81d92580e4e685afe8000d"
+  }
+}
