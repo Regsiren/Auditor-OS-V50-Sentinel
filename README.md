@@ -1,6 +1,15 @@
-# The Sentinel Protocol (Auditor OS V50-S Core)
+# SentinelGate & The Sentinel Protocol (Auditor OS V50-S Core)
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23185495.svg)](https://doi.org/10.5281/zenodo.23185495)
+**Deterministic In-Memory LLM Security Gateway & Residual Stream Kinematics**
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23520815.svg)](https://doi.org/10.5281/zenodo.23520815)
+
+| Status | Link |
+|--------|------|
+| **Production Gateway: Live** | [sentinelgate.dev](https://sentinelgate.dev) |
+| **API Status: Operational** | [api.sentinelgate.dev/health](https://api.sentinelgate.dev/health) |
+| **RFC-001 Normative Spec (v1.1)** | [DOI: 10.5281/zenodo.23520815](https://doi.org/10.5281/zenodo.23520815) |
+| **Technical Briefing Paper** | [DOI: 10.5281/zenodo.23515244](https://doi.org/10.5281/zenodo.23515244) |
 
 > **Scale-Invariant Thermodynamic Attribution: Mapping Non-Linear Phase Transitions in Macro-Systems via Stateless Telemetry Auditing**
 
@@ -8,7 +17,47 @@ This repository contains the reference implementation framework for the **V50 Se
 
 **Live Operations Portal:** [sentinel.thohatventures.com](https://sentinel.thohatventures.com) — hosted Streamlit interface for multi-zone phase analysis and `.sent` evidence export (no local install required).
 
+Get your API key at [sentinelgate.dev](https://sentinelgate.dev) or test the interactive terminal HUD.
+
+## 60-Second Quickstart
+
+Drop-in OpenAI-compatible client — point `base_url` at the live proxy:
+
+### Python
+
+```python
+from openai import OpenAI
+
+# Point to the live SentinelGate proxy
+client = OpenAI(
+    api_key="sk-sent-YOUR_API_KEY",
+    base_url="https://api.sentinelgate.dev/v1",
+)
+```
+
+### TypeScript
+
+```typescript
+import OpenAI from "openai";
+
+// Point to the live SentinelGate proxy
+const client = new OpenAI({
+  apiKey: "sk-sent-YOUR_API_KEY",
+  baseURL: "https://api.sentinelgate.dev/v1",
+});
+```
+
 ## The Blind Pipe Problem (TLS/HTTPS) vs. `.sent` Payload Security
+
+> ### 🏛️ Normative Specifications & Live Implementation
+>
+> | Artifact | Identification / Canonical Pointer | Status / Target |
+> | :--- | :--- | :--- |
+> | **RFC-001 Normative Standard (v1.1)** | [`DOI: 10.5281/zenodo.23520815`](https://doi.org/10.5281/zenodo.23520815) | *.sent Cryptographic Evidence Container Specification* |
+> | **Technical Briefing Paper** | [`DOI: 10.5281/zenodo.23515244`](https://doi.org/10.5281/zenodo.23515244) | *Eliminating the Blind Pipe for ISO 20022 Rails (TV-RFC001-EXEC)* |
+> | **Operational Gateway** | [`sentinelgate.dev`](https://sentinelgate.dev) (`api.sentinelgate.dev`) | Live Reference Implementation & Execution Intercept Proxy |
+>
+> *Target Working Groups: Payments Market Practice Group (PMPG), Swift Standards, HVPS+, Project Agorá.*
 
 Transport-layer encryption (TLS/HTTPS) secures the *pipe* — the channel between endpoints — but is silent about the *thermodynamic content* of the payload once it arrives. An adversarially drifted residual stream, a tampered SCADA frame, or a forged clearing instruction can all ride a perfectly valid TLS session.
 
@@ -17,6 +66,51 @@ The Dual-Pillar Sovereign Oracle Protocol therefore attests **payload state**, n
 $$E \ge k_B T \ln 2$$
 
 — meaning irreversible state falsification has a physical energy cost. Cryptographic attestation makes that falsification *detectable* to counterparties and clearing systems, even when the pipe itself remains green.
+
+| Dimension | TLS/HTTPS ("Blind Pipe") | `.sent` Payload Security (RFC-001) |
+| :--- | :--- | :--- |
+| Unit of protection | The transport channel | The individual payload / execution step |
+| Payload semantics | Opaque to the security layer | Inspected, kinematically vetoed, attested |
+| Timing | Connection-setup gate only | Token-0, pre-execution boundary |
+| Evidence produced | Session logs (mutable, narrative) | Ed25519-signed, hash-chained `.sent` evidence bag |
+| Failure posture | Fail-open payloads on a secure pipe | Fail-closed execution with tamper-evident proof |
+
+## ISO 20022 Integration Architecture
+
+Dual-anchor XML integration for autonomous financial execution rails:
+
+* **Payload anchor — Supplementary Data:** the 4-block attestation container (`attestation_header`, `thermodynamic_state_vector`, `execution_context`, `cryptographic_attestation`) is encapsulated in `<SplmtryData><Envlp>…</Envlp></SplmtryData>`.
+* **Header anchor — Business Application Header:** the detached signature is carried in `<head.001.001.03><AppHdr><Sgntr>…</Sgntr></AppHdr>`.
+* **Identifier discipline (`Max35Text`):** `"SG-" + Base32(Canonical_Row_Hash[0:20])` — a strict 35-character payload identifier used for `<MsgId>` / `<EndToEndId>`.
+
+```xml
+<Document>
+  <FIToFICstmrCdtTrf>
+    <GrpHdr><MsgId>SG-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</MsgId></GrpHdr>
+    <!-- … -->
+    <SplmtryData>
+      <Envlp><!-- RFC-001 4-block .sent attestation container --></Envlp>
+    </SplmtryData>
+  </FIToFICstmrCdtTrf>
+</Document>
+<!-- BAH: <head.001.001.03><AppHdr><Sgntr>…</Sgntr></AppHdr> -->
+```
+
+Reference mapper: [`spec/iso20022_mapper.py`](spec/iso20022_mapper.py) · schema: [`spec/sent_attestation.json`](spec/sent_attestation.json)
+
+## Macroeconomic Framework & Physical Impairment (Auditor OS)
+
+Institutional narrative on **Proof of Kinetic Reality (PoKR)**, thermodynamic sensor telemetry ($\Phi$), and dynamic net present value impairment ($V_{adj}$): PoKR is ex-ante kinetic attestation that a physical asset is structurally and thermally solvent relative to cadence, load–heat correlation, and entropy gates — fails closed on spoofed cadence or paper-fiction telemetry. The forensic floor is $V_{adj} = V_{primary} / (1 + \Phi)$; any mint, transfer, or draft export must reconcile to that floor or the action is void.
+
+**[Auditor OS Live Engine & 30-Minute Tactical Canary](https://auditor.thohatventures.com)**
+
+## Tri-Phase Risk Thresholds (STP vs Veto)
+
+| Band | Condition | Action |
+| :--- | :--- | :--- |
+| Straight-Through Processing (STP) | $\Omega_t < 0.07$ | Permit — nominal execution |
+| Enhanced Surveillance | $0.07 \le \Omega_t < 0.19$ | Metastable — monitor, margin/surveillance loops |
+| Fail-Closed Topological Veto | $\Omega_t \ge 0.19$ | Fail-closed — Token-0 sever, no execution |
 
 ## Repository Layout
 
