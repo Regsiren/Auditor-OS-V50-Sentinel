@@ -7,8 +7,9 @@
 [![Master Whitepaper](https://img.shields.io/badge/Master%20Whitepaper-10.5281%2Fzenodo.23185495-blue)](https://doi.org/10.5281/zenodo.23185495)
 [![Fiduciary Theory of Entropy](https://img.shields.io/badge/Fiduciary%20Theory%20of%20Entropy-SSRN%206704958-orange)](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6704958)
 [![Production Gateway](https://img.shields.io/badge/Gateway-sentinelgate.dev-0A84FF)](https://sentinelgate.dev)
-[![Production Workbench](https://img.shields.io/badge/Workbench-auditor.thohatventures.com-00C853)](https://auditor.thohatventures.com)
-[![License](https://img.shields.io/badge/license-Apache%202.0-green)](LICENSE)
+[![License: BSL 1.1](https://img.shields.io/badge/License-BSL%201.1%20(May%202030)-blue.svg)](LICENSE)
+
+*Source code in this repository is licensed under the Business Source License 1.1 (BSL 1.1), converting to open source (Apache 2.0) in May 2030. See [LICENSE](LICENSE).*
 
 ---
 
@@ -20,7 +21,7 @@
 4. [Mechanistic AI Homeostasis: Transformer Residual Stream Dynamics](#4-mechanistic-ai-homeostasis-transformer-residual-stream-dynamics)
 5. [Normative Specification: RFC-001 (`.sent` Container v1.1)](#5-normative-specification-rfc-001-sent-container-v11)
 6. [ISO 20022 Financial Rails & Interbank Risk Loops](#6-iso-20022-financial-rails--interbank-risk-loops)
-7. [Macroeconomic Infrastructure: Auditor OS & Proof of Kinetic Reality (PoKR)](#7-macroeconomic-infrastructure-auditor-os--proof-of-kinetic-reality-pokr)
+7. [Institutional Architecture & Commercial Boundary](#7-institutional-architecture--commercial-boundary)
 8. [Verification Algorithms & Offline Tooling](#8-verification-algorithms--offline-tooling)
 
 ---
@@ -37,13 +38,13 @@ Thohat Ventures replaces retrospective "paper fiction" and diagnostic lag across
 
 1. **Commercial Wedge: SentinelGate** — In-memory execution control at Token 0. Production-grade execution firewalls for autonomous AI agents, live at [sentinelgate.dev](https://sentinelgate.dev).
 2. **Research Engine: AI Homeostasis Core** — Residual stream dynamics & geometric alignment. Fundamental research into transformer residual stream dynamics and non-equilibrium thermodynamics, specified in this repository.
-3. **Sovereign Infrastructure: Auditor OS & Proof of Kinetic Reality (PoKR)** — Dynamic impairment for Project Agorá & wholesale settlement. Macroprudential physical-asset auditing with a live workbench at [auditor.thohatventures.com](https://auditor.thohatventures.com).
+3. **Commercial Boundary** — Enterprise runtimes are private commercial systems operated by Thohat Ventures and are **not** contained in this repository (see Section 7).
 
 | Pillar | System | Surface |
 | :--- | :--- | :--- |
-| Commercial Wedge | SentinelGate | [sentinelgate.dev](https://sentinelgate.dev) · `api.sentinelgate.dev` |
+| Commercial Wedge | SentinelGate (production, private) | [sentinelgate.dev](https://sentinelgate.dev) · `api.sentinelgate.dev` |
 | Research Engine | AI Homeostasis Core | This repository · [RFC-001 spec](https://doi.org/10.5281/zenodo.23520815) |
-| Sovereign Infrastructure | Auditor OS | [auditor.thohatventures.com](https://auditor.thohatventures.com) |
+| Commercial Boundary | Proprietary enterprise runtimes (private) | [thohatventures.com](https://thohatventures.com) |
 
 **Live Operations Portal:** [sentinel.thohatventures.com](https://sentinel.thohatventures.com) — hosted Streamlit interface for multi-zone phase analysis and `.sent` evidence export (no local install required).
 
@@ -90,7 +91,7 @@ Unlike legacy generative simulation models that rely on macro-scale spatial grid
 
 $$\ddot{\theta} = \frac{d^2\theta}{dt^2}$$
 
-The tactical layer passes this acceleration vector through a sub-resolution titration firewall ($\epsilon = 1 \times 10^{-7}$). These events are integrated across a rolling temporal baseline by the **T-30 Momentum Engine** to compute the continuous **Fatigue Coefficient** ($F_c$):
+The tactical layer passes this acceleration vector through a sub-resolution titration firewall ($\epsilon = 1 \times 10^{-7}$). These events are integrated across a rolling temporal baseline by the **T-30 Momentum Engine** to compute the continuous **Fatigue Coefficient** ($F_c$). Throughout this document, $F_c$ is computed over the **30-step ($T-30$) rolling kinematic acceleration window** — a 30-sample window, not a wall-clock duration:
 
 $$F_c = \int_{T-30}^{T} \left| \frac{d^2\theta}{dt^2} \right| \cdot w(\theta, \nabla \mathbf{X}) \, dt$$
 
@@ -160,7 +161,7 @@ If you utilize this framework, the V50-S core metrics, or the scale-invariant ph
 > | **Technical Briefing Paper** | [`DOI: 10.5281/zenodo.23515244`](https://doi.org/10.5281/zenodo.23515244) | *Eliminating the Blind Pipe for ISO 20022 Rails (TV-RFC001-EXEC)* |
 > | **Operational Gateway** | [`sentinelgate.dev`](https://sentinelgate.dev) (`api.sentinelgate.dev`) | Live Reference Implementation & Execution Intercept Proxy |
 >
-> *Target Working Groups: Payments Market Practice Group (PMPG), Swift Standards, HVPS+, Project Agorá.*
+> *Target Working Groups: Payments Market Practice Group (PMPG), Swift Standards, HVPS+.*
 
 Transport-layer encryption (TLS/HTTPS) secures the *pipe* — the channel between endpoints — but is silent about the *thermodynamic content* of the payload once it arrives. TLS guarantees transport confidentiality, not generating runtime integrity. An adversarially drifted residual stream, a tampered SCADA frame, or a forged clearing instruction can all ride a perfectly valid TLS session.
 
@@ -362,6 +363,8 @@ The four blocks:
 
 Field discipline: `canonical_row_hash` is the SHA-256 row-pair state hash; `state_uncertainty_coordinate` is $\Omega_t$; `jerk_metric` is $\vert J_\tau\vert$. Signatures are **Ed25519** over the canonical container; `public_key_hex` is 64-hex (32-byte) public verification material only — no private keys are ever published.
 
+> **Specification vs Implementation Note (cryptographic mode):** Production RFC-001 v1.1 specifies **hardware-backed Ed25519 signing**. This local reference repository additionally includes an **HMAC-SHA256 fallback for zero-dependency local developer testing** (when no Ed25519 backend is installed). The fallback is a developer convenience only — it is not the production signing mode, and production bags must use Ed25519.
+
 ### Cryptographic Chain of Custody
 
 When `row_hash` is present, `Forensic_kernel.py` validates each `sensor_id` chain independently (protocol `THOHAT-V50-SENTINEL`):
@@ -440,21 +443,18 @@ Clearinghouses consume the `.sent` bag at each boundary, and the bridge arms an 
 
 ---
 
-## 7. Macroeconomic Infrastructure: Auditor OS & Proof of Kinetic Reality (PoKR)
+## 7. Institutional Architecture & Commercial Boundary
 
-Physical asset solvency for Project Agorá, wholesale CBDCs, and regulated RWA tokenization. **Proof of Kinetic Reality (PoKR)** is ex-ante kinetic attestation: continuous, row-level verification that a physical asset is structurally and thermally solvent relative to cadence, load–heat correlation, and entropy gates — fails closed on spoofed cadence or paper-fiction telemetry, where legacy Proof of Reserve only attests custodial snapshots after the fact.
+> **Notice on Commercial & Sovereign Implementations:**
+> This repository contains the public mathematical core (Scale-Invariant Thermodynamic Attribution) and the open reference implementation for RFC-001 (`.sent` container). Enterprise runtimes, including the proprietary **Auditor OS** physical asset impairment platform  and production **SentinelGate** infrastructure, are private commercial systems operated by Thohat Ventures. For enterprise licensing, visit [thohatventures.com](https://thohatventures.com).
 
-Translating continuous sensor thermodynamic telemetry ($\Phi$) into real-time Net Present Value impairment bounds:
+Nothing in this section — or elsewhere in this repository — should be read as disclosing the proprietary enterprise platforms named above. What is public here is the mathematics, the RFC-001 reference container, and the local verification tooling in Section 8.
 
-$$V_{adj} = \frac{V_{primary}}{1 + \Phi}$$
+---
 
-Any mint, transfer, or export must reconcile to $V_{adj}$ or the action is void.
+## 8. Verification Algorithms & Offline Tooling
 
-**The 30-Minute Tactical Canary:** a predictive intercept gate on high-cadence telemetry that detects systemic load and thermal anomalies — physical and thermal degradation — before macroscopic failure compounds, collapsing the long blind spot between pour/commissioning and retrospective inspection.
-
-**Institutional Live Workbench: [Auditor OS Live Engine & 30-Minute Tactical Canary](https://auditor.thohatventures.com)**
-
-### Required Telemetry Schema (Auditor OS)
+### Required Telemetry Schema (Reference Core)
 
 Uploaded CSV streams must include:
 
@@ -469,21 +469,6 @@ Uploaded CSV streams must include:
 
 * `DOMAIN_PROFILES` (`Engine.py`): `PLANETARY_INFRASTRUCTURE`, `BIOMETRIC_SENTINEL`, `QUANTUM_COHERENCE` — scale-invariant gates with domain-specific shear and energy limits.
 * `Data_Synthesizer.py`: An empirical data synthesizer that seeds a 100-year multi-zone climate/structural dataset profile (AMOC decay lifecycle vs. control baseline) embedded with sub-resolution anomalies.
-
-### Enterprise Production Inquiries
-
-If your organization requires real-time telemetry processing for high-acuity clinical environments, defense logistics, tactical ambulatory deployment, or commercial wearable hardware integration, please contact our institutional team to secure an enterprise deployment license for the **Auditor OS Oracle** platform.
-
-The commercial layer includes:
-* **Adaptive Noise-Gate Engineering:** Dynamic signal-conditioning matrices designed to filter out stride impacts, muscle tremors, and electrode movement artifacts natively.
-* **Live Automated Actuator Hooks:** Production-ready closed-loop hooks to bridge 0.19 $\Phi$ veto verdicts directly into hardware overrides.
-* **C-Suite Multi-Page Reporting Engines:** Automatic, context-aware PDF generation pipelines tailored for corporate risk committees and underwriters.
-
-🌐 Learn more or request an evaluation sandbox at [sentinel.thohatventures.com](https://sentinel.thohatventures.com) or [auditor.thohatventures.com](https://auditor.thohatventures.com).
-
----
-
-## 8. Verification Algorithms & Offline Tooling
 
 ### Repository Layout
 
@@ -651,4 +636,6 @@ This reference implementation is designed to establish a standardized telemetry 
 
 ---
 
-**THOHAT Ventures** — Auditor OS V50 Sentinel Reference Implementation · [sentinelgate.dev](https://sentinelgate.dev) · [auditor.thohatventures.com](https://auditor.thohatventures.com)
+**THOHAT Ventures** — Auditor OS V50 Sentinel Reference Implementation · [sentinelgate.dev](https://sentinelgate.dev) · [thohatventures.com](https://thohatventures.com)
+
+*Source code licensed under the Business Source License 1.1 (BSL 1.1); converting to open source (Apache 2.0) in May 2030.*
