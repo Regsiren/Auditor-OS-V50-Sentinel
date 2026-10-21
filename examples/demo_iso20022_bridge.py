@@ -51,9 +51,11 @@ def main() -> None:
     print(bridged["camt053_xml"][:600])
 
     assert bridged["dividend_kill_switch"]["kill_switch_armed"] is True
-    assert bag["cryptographic_attestation"]["canonical_row_hash"] in bridged["pacs008_xml"]
-    assert bag["cryptographic_attestation"]["canonical_row_hash"] in bridged["camt053_xml"]
-    print("\n[+] Bridge assertions passed (kill-switch armed, hash injected).")
+    msg_id = bridged["iso20022_json"]["pacs008"]["Document"]["FIToFICstmrCdtTrf"]["GrpHdr"]["MsgId"]
+    assert len(msg_id) <= 35 and msg_id.startswith("SG-") and "=" not in msg_id
+    assert msg_id in bridged["pacs008_xml"]
+    assert msg_id in bridged["camt053_xml"]
+    print("\n[+] Bridge assertions passed (kill-switch armed, Max35Text ID injected).")
 
 
 if __name__ == "__main__":

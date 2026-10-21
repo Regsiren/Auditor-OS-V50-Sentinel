@@ -138,22 +138,33 @@ def test_mint_v10_from_report_matches_schema_and_portal_keys():
 
 
 def test_iso20022_hash_injection_and_kill_switch():
+    import base64
+
     bag = _mint_sample(omega=0.21)
     bridged = bridge_sent_bag(bag)
     digest = bag["cryptographic_attestation"]["canonical_row_hash"]
 
+    # RFC-001 v1.1 Max35Text: "SG-" + Base32(first 20 bytes of hash), exactly 35 chars.
+    expected_msg_id = "SG-" + base64.b32encode(bytes.fromhex(digest)[:20]).decode("ascii")
+    assert len(expected_msg_id) == 35
+    assert "=" not in expected_msg_id
+
     assert bridged["dividend_kill_switch"]["kill_switch_armed"] is True
-    assert digest in bridged["pacs008_xml"]
-    assert digest in bridged["camt053_xml"]
-    assert "<MsgId>" + digest + "</MsgId>" in bridged["pacs008_xml"].replace("\n", "").replace(" ", "") or digest in bridged["pacs008_xml"]
-    assert digest in bridged["camt053_xml"]
+    assert f"<MsgId>{expected_msg_id}</MsgId>" in bridged["pacs008_xml"].replace("\n", "").replace(" ", "")
+    assert f"<EndToEndId>{expected_msg_id}</EndToEndId>" in bridged["camt053_xml"].replace("\n", "").replace(" ", "")
 
     mapped = map_sent_to_iso20022_json(bag)
-    assert mapped["pacs008"]["Document"]["FIToFICstmrCdtTrf"]["GrpHdr"]["MsgId"] == digest
-    assert (
-        mapped["camt053"]["Stmt"]["Ntry"]["NtryDtls"]["TxDtls"]["Refs"]["EndToEndId"]
-        == digest
-    )
+    msg_id = mapped["pacs008"]["Document"]["FIToFICstmrCdtTrf"]["GrpHdr"]["MsgId"]
+    end_to_end_id = mapped["camt053"]["Stmt"]["Ntry"]["NtryDtls"]["TxDtls"]["Refs"]["EndToEndId"]
+    assert msg_id == expected_msg_id
+    assert end_to_end_id == expected_msg_id
+    for val in (msg_id, end_to_end_id):
+        assert len(val) <= 35
+        assert len(val) == 35
+        assert val.startswith("SG-")
+        assert "=" not in val
+    # Full canonical hash is retained only in the JSON companion evidence field.
+    assert mapped["canonical_row_hash"] == digest
 
     clear = dividend_kill_switch(0.05)
     assert clear["kill_switch_armed"] is False
