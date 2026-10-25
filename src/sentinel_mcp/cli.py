@@ -206,6 +206,7 @@ async def ingress_pump(
 
     # ---- State rehydration (RFC-001 §7) -------------------------------
     latest_state = store.get_latest_state(session_id)
+    auditor.rehydrate(store.get_recent_thetas(session_id, limit=30))
     current_step = int(latest_state["sequence_step"]) if latest_state else 0
     prev_hash = (
         str(latest_state["canonical_row_hash"])

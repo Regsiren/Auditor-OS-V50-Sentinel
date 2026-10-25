@@ -28,8 +28,22 @@ def _seed_matrix_bytes(seed: Union[str, Dict[str, Any]]) -> str:
     return str(seed)
 
 
+def _resolve_hashlib_name(algorithm: str) -> str:
+    """Map RFC-style algorithm labels to ``hashlib`` constructor names."""
+    normalised = (algorithm or "SHA-256").strip().upper().replace("_", "-")
+    mapping = {
+        "SHA-256": "sha256",
+        "SHA-384": "sha384",
+        "SHA-512": "sha512",
+        "SHA3-256": "sha3_256",
+        "SHA3-384": "sha3_384",
+        "SHA3-512": "sha3_512",
+    }
+    return mapping.get(normalised, "sha256")
+
+
 class StateChainer:
-    """RFC-001 sequential row-pair hasher."""
+    """RFC-001 sequential row-pair hasher (hash-agile)."""
 
     @staticmethod
     def compute_canonical_hash(
@@ -37,12 +51,10 @@ class StateChainer:
         state: ThermodynamicStateVector,
         context: ExecutionContext,
     ) -> str:
-        """SHA-256 over the three state blocks + chain salt material.
+        """Digest the three state blocks + chain salt material.
 
-        Serialises ``header``, ``state``, and ``context`` into one
-        dictionary, dumps it with sorted keys and compact separators,
-        then concatenates that JSON with ``prev_bag_hash`` and
-        ``crypto_seed_matrix`` before hashing.
+        Uses ``header.hash_algorithm`` (default ``SHA-256``) so the
+        bag can declare a post-quantum-ready hash without a schema break.
         """
         obj = {
             "attestation_header": header.model_dump(),
@@ -53,4 +65,5 @@ class StateChainer:
         prev = header.prev_bag_hash if header.prev_bag_hash is not None else ""
         seed = _seed_matrix_bytes(header.crypto_seed_matrix)
         material = f"{canonical}{prev}{seed}".encode("utf-8")
-        return hashlib.sha256(material).hexdigest()
+        algo = getattr(header, "hash_algorithm", None) or "SHA-256"
+        return hashlib.new(_resolve_hashlib_name(algo), material).hexdigest()

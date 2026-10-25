@@ -161,6 +161,19 @@ class KinematicAuditor:
         self._steps = 0
         self.last = None
 
+    def rehydrate(self, historical_thetas: list[list[float]]) -> None:
+        """Replay historical θ_t through the ring buffer (no bag minting).
+
+        Restores velocity, acceleration shear, and rolling fatigue ``F_c``
+        to the baselines implied by the persisted trajectory so a process
+        restart continues kinematics instead of resetting to zero.
+        """
+        self.reset()
+        if not historical_thetas:
+            return
+        for theta in historical_thetas:
+            self.step(theta)
+
     def __len__(self) -> int:
         return self._steps
 

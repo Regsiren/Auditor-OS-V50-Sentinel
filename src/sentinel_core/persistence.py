@@ -109,6 +109,38 @@ class SessionStore:
             payload["theta"] = []
         return payload
 
+    def get_recent_thetas(
+        self, session_id: str, limit: int = 30
+    ) -> list[list[float]]:
+        """Return up to ``limit`` recent θ vectors in chronological order.
+
+        Rows are selected newest-first (``ORDER BY sequence_step DESC``),
+        parsed from ``theta_json``, then reversed so the list is
+        oldest → newest for auditor warm-up.
+        """
+        if limit < 1:
+            return []
+        cursor = self.conn.execute(
+            """
+            SELECT theta_json
+            FROM session_history
+            WHERE session_id = ?
+            ORDER BY sequence_step DESC
+            LIMIT ?
+            """,
+            (session_id, int(limit)),
+        )
+        thetas: List[List[float]] = []
+        for row in cursor.fetchall():
+            try:
+                parsed = json.loads(row["theta_json"])
+            except (TypeError, json.JSONDecodeError):
+                continue
+            if isinstance(parsed, list) and parsed:
+                thetas.append([float(x) for x in parsed])
+        thetas.reverse()
+        return thetas
+
     def close(self) -> None:
         self.conn.close()
 

@@ -24,6 +24,9 @@ class AttestationHeader(BaseModel):
     sequence_step: int
     prev_bag_hash: Optional[str] = None
     crypto_seed_matrix: Union[str, Dict[str, Any]]
+    # Cryptographic agility (RFC-001 / post-quantum roadmap). Optional with
+    # default so existing v1.1.1 bags that omit the field still validate.
+    hash_algorithm: str = "SHA-256"
 
 
 class ThermodynamicStateVector(BaseModel):
