@@ -36,8 +36,18 @@ ingestion_spline.py
 thermodynamic_calculus.py
 phase_space_gating.py
 rfc001_packaging.py
+generate_attestation_keypair.py
+baseline_bakeoff.py
 **/generate_scada.py
 **/ingestion_spline.py
 **/thermodynamic_calculus.py
 **/phase_space_gating.py
 **/rfc001_packaging.py
+**/generate_attestation_keypair.py
+**/baseline_bakeoff.py
+
+# Private key / HSM material must never enter the public tree
+keys/
+*.pem
+hsm_master_private.pem
+**/hsm_master_private.pem

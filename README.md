@@ -2,7 +2,11 @@
 
 *Scale-Invariant Thermodynamic Phase Space Tracking across Physics, Biology, Synthetic Intelligence, and Sovereign Financial Rails*
 
-[![RFC-001 Spec v1.1](https://img.shields.io/badge/RFC--001%20Spec%20v1.1-10.5281%2Fzenodo.23520815-blue)](https://doi.org/10.5281/zenodo.23520815)
+[![Python 3.13.13](https://img.shields.io/badge/Python-3.13.13-3776AB?logo=python&logoColor=white)](.python-version)
+[![Tests: 29 Passing](https://img.shields.io/badge/Tests-29%20Passing-brightgreen)](evaluations/)
+[![Schema: RFC-001 v1.2.0](https://img.shields.io/badge/Schema-RFC--001%20v1.2.0-blue)](spec/sent_attestation.json)
+[![UKIPO Priority Locked](https://img.shields.io/badge/UKIPO-Priority%20Locked%20(Patent%20Pending)-purple)](#11-intellectual-property--citation)
+[![RFC-001 Spec](https://img.shields.io/badge/RFC--001%20Spec-10.5281%2Fzenodo.23520815-blue)](https://doi.org/10.5281/zenodo.23520815)
 [![Technical Briefing](https://img.shields.io/badge/Technical%20Briefing-10.5281%2Fzenodo.23515244-blue)](https://doi.org/10.5281/zenodo.23515244)
 [![Master Whitepaper](https://img.shields.io/badge/Master%20Whitepaper-10.5281%2Fzenodo.23185495-blue)](https://doi.org/10.5281/zenodo.23185495)
 [![Fiduciary Theory of Entropy](https://img.shields.io/badge/Fiduciary%20Theory%20of%20Entropy-SSRN%206704958-orange)](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6704958)
@@ -11,22 +15,28 @@
 
 *Source code in this repository is licensed under the Business Source License 1.1 (BSL 1.1), converting to open source (Apache 2.0) in May 2030. See [LICENSE](LICENSE).*
 
+**Dual-Pillar SentinelGovernor:** latent trajectory auditing ($\Omega_t$ / $\Phi$ over residual and physical streams) plus cryptographic RFC-001 `.sent` attestation — fail-closed permit / surveil / veto with Ed25519-sealed evidence.
+
 ---
 
 ## Table of Contents
 
-1. [Executive Summary & Unified Doctrine](#1-executive-summary--unified-doctrine)
-2. [Theoretical Foundations & Public Records (Full Academic Pedigree)](#2-theoretical-foundations--public-records-full-academic-pedigree)
-3. [Operational Implementation: SentinelGate (Token-0 Execution Control)](#3-operational-implementation-sentinelgate-token-0-execution-control)
-4. [Mechanistic AI Homeostasis: Transformer Residual Stream Dynamics](#4-mechanistic-ai-homeostasis-transformer-residual-stream-dynamics)
-5. [Normative Specification: RFC-001 (`.sent` Container v1.1)](#5-normative-specification-rfc-001-sent-container-v11)
-6. [ISO 20022 Financial Rails & Interbank Risk Loops](#6-iso-20022-financial-rails--interbank-risk-loops)
-7. [Institutional Architecture & Commercial Boundary](#7-institutional-architecture--commercial-boundary)
-8. [Verification Algorithms & Offline Tooling](#8-verification-algorithms--offline-tooling)
+1. [Hero, Status & Unified Doctrine](#1-hero-status--unified-doctrine)
+2. [Video Demo & Quick Start](#2-video-demo--quick-start)
+3. [Choose Your Evaluation Track](#3-choose-your-evaluation-track)
+4. [Unified Repository Architecture](#4-unified-repository-architecture)
+5. [Theoretical Foundations & Public Records (Full Academic Pedigree)](#5-theoretical-foundations--public-records-full-academic-pedigree)
+6. [Operational Implementation: SentinelGate (Token-0 Execution Control)](#6-operational-implementation-sentinelgate-token-0-execution-control)
+7. [Mechanistic AI Homeostasis: Transformer Residual Stream Dynamics](#7-mechanistic-ai-homeostasis-transformer-residual-stream-dynamics)
+8. [Normative Specification: RFC-001 (`.sent` Container)](#8-normative-specification-rfc-001-sent-container)
+9. [ISO 20022 Financial Rails & Interbank Risk Loops](#9-iso-20022-financial-rails--interbank-risk-loops)
+10. [Institutional Architecture & Commercial Boundary](#10-institutional-architecture--commercial-boundary)
+11. [Intellectual Property & Citation](#11-intellectual-property--citation)
+12. [Reproducibility Runbooks & Offline Tooling](#12-reproducibility-runbooks--offline-tooling)
 
 ---
 
-## 1. Executive Summary & Unified Doctrine
+## 1. Hero, Status & Unified Doctrine
 
 **Deterministic In-Memory LLM Security Gateway & Residual Stream Kinematics.**
 
@@ -38,7 +48,7 @@ Thohat Ventures replaces retrospective "paper fiction" and diagnostic lag across
 
 1. **Commercial Wedge: SentinelGate** — In-memory execution control at Token 0. Production-grade execution firewalls for autonomous AI agents, live at [sentinelgate.dev](https://sentinelgate.dev).
 2. **Research Engine: AI Homeostasis Core** — Residual stream dynamics & geometric alignment. Fundamental research into transformer residual stream dynamics and non-equilibrium thermodynamics, specified in this repository.
-3. **Commercial Boundary** — Enterprise runtimes are private commercial systems operated by Thohat Ventures and are **not** contained in this repository (see Section 7).
+3. **Commercial Boundary** — Enterprise runtimes are private commercial systems operated by Thohat Ventures and are **not** contained in this repository (see Section 10).
 
 | Pillar | System | Surface |
 | :--- | :--- | :--- |
@@ -50,7 +60,104 @@ Thohat Ventures replaces retrospective "paper fiction" and diagnostic lag across
 
 ---
 
-## 2. Theoretical Foundations & Public Records (Full Academic Pedigree)
+## 2. Video Demo & Quick Start
+
+[![Watch the video](https://img.youtube.com/vi/MGH7lfhtYGo/maxresdefault.jpg)](https://youtu.be/MGH7lfhtYGo)
+
+**Video walkthrough:** [https://youtu.be/MGH7lfhtYGo](https://youtu.be/MGH7lfhtYGo)
+
+### Launch the Streamlit Operations Workspace
+
+```bash
+pip install -r requirements.txt
+streamlit run App.py
+```
+
+Open the local URL shown in the terminal (typically `http://localhost:8501`), upload `data/MACRO_SYSTEM_PLANETARY_STREAM.csv` (or generate it with `python Data_Synthesizer.py`), and inspect per-zone phase metrics, kinetic trajectory plots, and `.sent` evidence exports. Use the sidebar **Sentinel Domain Workspace** to select a monitoring zone and its physics blueprint.
+
+**Hosted alternative:** [sentinel.thohatventures.com](https://sentinel.thohatventures.com)
+
+### Root Runtime Cheatsheet
+
+```bash
+# Synthesizers
+python Data_Synthesizer.py
+python Biometric_Synthesizer.py
+
+# Physical kernel tests
+python -m pytest test_engine.py -v
+
+# Empirical corpus matrix
+python evaluate_corpus.py
+```
+
+---
+
+## 3. Choose Your Evaluation Track
+
+| Track | Audience | Enter here | Primary artifacts |
+| :--- | :--- | :--- | :--- |
+| **1 — ARIA Safeguarded AI** | AI safety / ARIA reviewers | [`ARIA_REVIEWERS_GUIDE.md`](ARIA_REVIEWERS_GUIDE.md) | [`auditor_ai/`](auditor_ai/), [`evaluations/`](evaluations/), [`docs/ARIA_TECHNICAL_ROADMAP.md`](docs/ARIA_TECHNICAL_ROADMAP.md) |
+| **2 — MIT Solve / AEGIS** | Industrial / climate evaluators | [`aegis/README.md`](aegis/README.md) | [`aegis/`](aegis/), `verify_sent_bag.py`, `NODE-02-*`, `pubkey.hex` |
+| **3 — RFC-001 / PMPG / ISO 20022** | Financial standards & MCP | [`spec/`](spec/), [`src/sentinel_mcp/`](src/sentinel_mcp/) | `.sent` schema, ISO mapper, open-core MCP stdio proxy |
+
+---
+
+## 4. Unified Repository Architecture
+
+```
+Auditor-OS-V50-Sentinel/
+│
+├── # ── Root operational tools ──────────────────────────────────────────
+├── App.py                         # Streamlit operations workspace (ZONE-07)
+├── Engine.py                      # Stateless fiduciary / physical kernel (V50-S)
+├── Forensic_kernel.py             # Row-hash chain + Dual-Pillar .sent mint / Ed25519
+├── Data_Synthesizer.py            # Planetary reference telemetry generator
+├── Biometric_Synthesizer.py       # BIOMETRIC_SENTINEL demo stream generator
+├── resign_telemetry_chain.py      # Re-mint per-zone row_hash seals
+├── evaluate_corpus.py             # Empirical results-matrix generator
+├── test_engine.py                 # Physical kernel validation suite
+│
+├── # ── Track 1: ARIA Safeguarded AI ────────────────────────────────────
+├── auditor_ai/                    # AI Homeostasis + ARIA Dual-Head governor
+│   ├── sentinel_engine.py         # Baseline residual-stream auditor (Ω_t)
+│   └── adaptive_engine.py         # Stage I Prefill + Stage II Decode
+├── evaluations/                   # HarmBench-style + latency overhead harnesses
+├── ARIA_REVIEWERS_GUIDE.md        # 30–60 min reviewer runbook
+│
+├── # ── Track 2: MIT Solve / AEGIS ──────────────────────────────────────
+├── aegis/                         # Climate / industrial technical appendix
+│   ├── README.md                  # Evaluator 30-second runbook
+│   ├── verify_sent_bag.py         # Offline Ed25519 .sent verifier
+│   ├── pubkey.hex                 # Persistent custody-grade public key
+│   ├── NODE-02-*.csv / *.png      # Hydraulic SCADA + bake-off evidence
+│   └── NODE-02-TERMINAL-EVIDENCE.sent
+│
+├── # ── Track 3: RFC-001 / PMPG / ISO 20022 ─────────────────────────────
+├── spec/                          # .sent JSON Schema, eBPF note, ISO mapper
+│   ├── sent_attestation.json
+│   ├── iso20022_mapper.py
+│   └── ebpf_interceptor_spec.md
+├── src/
+│   ├── sentinel_core/             # Kinematics, crypto, SQLite WAL persistence
+│   └── sentinel_mcp/              # Open-core stdio MCP Token-0 proxy
+│
+├── # ── Infrastructure & test suites ────────────────────────────────────
+├── examples/                      # Residual, HF, ARIA, Stage I/II, ISO demos
+├── scripts/                       # Corpus generators + IP denylist checker
+├── tests/                         # Physical + AI + schema + WAL tests
+├── docs/                          # THEORY, ARIA roadmap, TEE note, biometrics
+├── data/                          # Sample & generated telemetry streams
+├── assets/                        # Brand assets (sidebar logo)
+├── requirements.txt / requirements-ai.txt
+├── pyproject.toml                 # sentinel-core / sentinel-mcp packaging
+├── .python-version                # Python 3.13.13 pin
+└── LICENSE                        # BSL 1.1 → Apache 2.0 on May 25, 2030
+```
+
+---
+
+## 5. Theoretical Foundations & Public Records (Full Academic Pedigree)
 
 The mathematical architecture, scale-invariant algorithms, and multi-domain validation use cases governing the reference kernel inside this repository are fully documented across the following public open-access preprints.
 
@@ -83,7 +190,7 @@ The mathematical architecture, scale-invariant algorithms, and multi-domain vali
   * *Permanent Digital Record:* [https://doi.org/10.5281/zenodo.20562620](https://doi.org/10.5281/zenodo.20562620)
   * *Alternative Financial Network Vector:* [SSRN Abstract 6704958](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6704958)
 
-[![Watch the video](https://img.youtube.com/vi/MGH7lfhtYGo/maxresdefault.jpg)](https://youtu.be/MGH7lfhtYGo)
+> **Video walkthrough** (also featured in [Section 2](#2-video-demo--quick-start)): [https://youtu.be/MGH7lfhtYGo](https://youtu.be/MGH7lfhtYGo)
 
 ### Mathematical Foundation
 
@@ -131,25 +238,11 @@ Trackable kinetic acceleration  Purely stochastic non-physical noise
 
 The engine requires data velocity to map the path to collapse; it cannot interrogate a ledger that remains closed.
 
-### Academic Citation
-
-If you utilize this framework, the V50-S core metrics, or the scale-invariant phase space mathematics in an academic, institutional, or commercial research capacity, please cite the foundational paper:
-
-```bibtex
-@misc{olaiya2026scale,
-  title={Scale-Invariant Thermodynamic Attribution: A Stateless Alternative for Complex System Data Modelling},
-  author={Olaiya, Remi},
-  year={2026},
-  publisher={Zenodo},
-  doi={10.5281/zenodo.20548469},
-  url={https://doi.org/10.5281/zenodo.20548469},
-  note={Operational Core: Core V50-S Sentinel Framework}
-}
-```
+> BibTeX citation and UKIPO priority notice are consolidated in [Section 11](#11-intellectual-property--citation).
 
 ---
 
-## 3. Operational Implementation: SentinelGate (Token-0 Execution Control)
+## 6. Operational Implementation: SentinelGate (Token-0 Execution Control)
 
 ### The Blind Pipe Problem (TLS vs RFC-001)
 
@@ -228,7 +321,7 @@ except APIStatusError as e:
 
 ---
 
-## 4. Mechanistic AI Homeostasis: Transformer Residual Stream Dynamics
+## 7. Mechanistic AI Homeostasis: Transformer Residual Stream Dynamics
 
 The same scale-invariant observer that audits planetary and biometric telemetry also applies to **frontier model residual streams**. This pillar ships a **Dual-Head Governor**:
 
@@ -312,7 +405,7 @@ Live dashboard workspace: **ZONE-07-RESIDUAL_STREAM (AI Latent Activation & LLM 
 
 ---
 
-## 5. Normative Specification: RFC-001 (`.sent` Container v1.1)
+## 8. Normative Specification: RFC-001 (`.sent` Container)
 
 **Standards Reference:** [DOI: 10.5281/zenodo.23520815](https://doi.org/10.5281/zenodo.23520815) | **Technical Briefing:** [DOI: 10.5281/zenodo.23515244](https://doi.org/10.5281/zenodo.23515244)
 
@@ -385,7 +478,7 @@ Schema: [`spec/sent_attestation.json`](spec/sent_attestation.json)
 
 ---
 
-## 6. ISO 20022 Financial Rails & Interbank Risk Loops
+## 9. ISO 20022 Financial Rails & Interbank Risk Loops
 
 Integration with HVPS+, CBPR+, and TARGET2 messaging rails via dual-anchor integration:
 
@@ -443,16 +536,62 @@ Clearinghouses consume the `.sent` bag at each boundary, and the bridge arms an 
 
 ---
 
-## 7. Institutional Architecture & Commercial Boundary
+## 10. Institutional Architecture & Commercial Boundary
 
 > **Notice on Commercial & Sovereign Implementations:**
 > This repository contains the public mathematical core (Scale-Invariant Thermodynamic Attribution) and the open reference implementation for RFC-001 (`.sent` container). Enterprise runtimes, including the proprietary **Auditor OS** physical asset impairment platform  and production **SentinelGate** infrastructure, are private commercial systems operated by Thohat Ventures. For enterprise licensing, visit [thohatventures.com](https://thohatventures.com).
 
-Nothing in this section — or elsewhere in this repository — should be read as disclosing the proprietary enterprise platforms named above. What is public here is the mathematics, the RFC-001 reference container, and the local verification tooling in Section 8.
+Nothing in this section — or elsewhere in this repository — should be read as disclosing the proprietary enterprise platforms named above. What is public here is the mathematics, the RFC-001 reference container, and the local verification tooling in Section 12.
 
 ---
 
-## 8. Verification Algorithms & Offline Tooling
+## 11. Intellectual Property & Citation
+
+Pending UK intellectual property protection is filed under **UKIPO** with **Paris Convention priority locked** (patent pending). This public repository discloses the mathematical reference core and RFC-001 tooling only; commercial product implementations remain outside this tree (see Section 10).
+
+### Academic Citation (BibTeX)
+
+If you utilize this framework, the V50-S core metrics, or the scale-invariant phase space mathematics in an academic, institutional, or commercial research capacity, please cite the foundational paper:
+
+```bibtex
+@misc{olaiya2026scale,
+  title={Scale-Invariant Thermodynamic Attribution: A Stateless Alternative for Complex System Data Modelling},
+  author={Olaiya, Remi},
+  year={2026},
+  publisher={Zenodo},
+  doi={10.5281/zenodo.20548469},
+  url={https://doi.org/10.5281/zenodo.20548469},
+  note={Operational Core: Core V50-S Sentinel Framework}
+}
+```
+
+### License (BSL 1.1 → Apache 2.0)
+
+This repository is licensed under the **Business Source License 1.1 (BSL 1.1)** by Thohat Ventures. Non-commercial research and developer use is permitted; commercial production use requires a separate license from Thohat Ventures. The Software transitions to **Apache 2.0** on **May 25, 2030**. See [LICENSE](LICENSE) for the full terms.
+
+---
+
+## 12. Reproducibility Runbooks & Offline Tooling
+
+### Track 1 — ARIA (≈10 seconds)
+
+```bash
+pip install -r requirements.txt -r requirements-ai.txt
+pytest evaluations/ -q
+```
+
+Reviewer guide: [`ARIA_REVIEWERS_GUIDE.md`](ARIA_REVIEWERS_GUIDE.md).
+
+### Track 2 — AEGIS offline `.sent` verification (sub-50µs core)
+
+```bash
+pip install pynacl
+python aegis/verify_sent_bag.py aegis/NODE-02-TERMINAL-EVIDENCE.sent
+# Expected: VALID
+```
+
+From inside `aegis/`: `python verify_sent_bag.py NODE-02-TERMINAL-EVIDENCE.sent`  
+Appendix: [`aegis/README.md`](aegis/README.md).
 
 ### Required Telemetry Schema (Reference Core)
 
@@ -472,45 +611,16 @@ Uploaded CSV streams must include:
 
 ### Repository Layout
 
-```
-Auditor-OS-V50-Sentinel/
-├── App.py                      # Streamlit operations interface (ZONE-07 AI workspace)
-├── Engine.py                   # Stateless fiduciary kernel (V50-S core)
-├── Forensic_kernel.py          # Row-hash chain + Dual-Pillar .sent v1.0 mint / Ed25519
-├── Data_Synthesizer.py         # Planetary reference telemetry generator
-├── Biometric_Synthesizer.py    # BIOMETRIC_SENTINEL demo stream generator
-├── resign_telemetry_chain.py   # Re-mint per-zone row_hash seals on a stream
-├── evaluate_corpus.py          # Faithful Section 6 results-matrix generator
-├── test_engine.py              # Automated validation suite (physical kernel)
-├── auditor_ai/                 # AI Homeostasis + ARIA adaptive alignment
-│   ├── sentinel_engine.py      # Baseline residual-stream auditor (Ω_t)
-│   └── adaptive_engine.py      # ARIA: Stage I Prefill + Stage II Decode governor
-├── examples/                   # Runnable demos (residual, HF, ARIA, Stage I/II, ISO)
-├── scripts/                    # Deterministic corpus generators
-├── spec/                       # .sent schema, eBPF note, ISO 20022 mapper
-├── tests/                      # Physical + AI + schema tests (torch soft-skip)
-├── requirements.txt            # Core runtime dependencies
-├── requirements-ai.txt         # Optional PyTorch / transformers extras
-├── .python-version             # Railway / Railpack Python pin (3.13.13)
-├── LICENSE                     # BSL 1.1 (Apache 2.0 after May 25, 2030)
-├── assets/                     # Brand assets (sidebar logo)
-├── data/                       # Sample & generated telemetry streams
-└── docs/                       # White papers & specialized addendums
-    ├── README.md               # Documentation index & contribution horizons
-    ├── THEORY.md               # Core mathematical framework
-    ├── ARIA_TECHNICAL_ROADMAP.md
-    ├── TEE_ENCLAVE_SPEC.md       # Confidential compute observer trust boundary
-    └── APPENDIX_B_BIOMETRIC_SENTINEL.md
-```
+The annotated multi-track tree is promoted to **[Section 4 — Unified Repository Architecture](#4-unified-repository-architecture)**.
 
 ### Core Repository Architecture
 
 * `Engine.py`: The stateless fiduciary kernel executing the second-derivative acceleration tracking, rolling fatigue integrals, and boundary phase state evaluations.
-* `Forensic_kernel.py`: Handles the local cryptographic chain-of-custody validation layer via sequential, state-less SHA-256 row-pair hashing, and mints schema v1.0 `.sent` attestation bags.
+* `Forensic_kernel.py`: Handles the local cryptographic chain-of-custody validation layer via sequential, state-less SHA-256 row-pair hashing, and mints Dual-Pillar `.sent` attestation bags.
 * `App.py`: Streamlit operations interface with the **Sentinel Domain Workspace** (zone → physics preset routing) and multi-zone phase space portraits with `.sent` evidence export.
-* `auditor_ai/`: Optional PyTorch residual-stream auditor (`SentinelActivationAuditor`) producing the AI-domain State Uncertainty Coordinate $\Omega_t$.
-* `spec/`: Formal `.sent` JSON Schema v1.0 and the eBPF Topological Veto interceptor design note.
-* `scripts/`: Deterministic corpus generators (e.g. maritime stream relabel + seal).
+* `auditor_ai/`: Optional PyTorch residual-stream auditor (`SentinelActivationAuditor`) plus ARIA Dual-Head governor producing the AI-domain State Uncertainty Coordinate $\Omega_t$.
+* `aegis/`: MIT Solve industrial appendix — offline `.sent` verification against persistent `pubkey.hex`.
+* `spec/` + `src/sentinel_mcp/`: Formal `.sent` schema, ISO 20022 mapper, eBPF note, and open-core MCP stdio proxy.
 * `DOMAIN_PROFILES` (`Engine.py`): `PLANETARY_INFRASTRUCTURE`, `BIOMETRIC_SENTINEL`, `QUANTUM_COHERENCE` — scale-invariant gates with domain-specific shear and energy limits.
 * `Data_Synthesizer.py`: An empirical data synthesizer that seeds a 100-year multi-zone climate/structural dataset profile (AMOC decay lifecycle vs. control baseline) embedded with sub-resolution anomalies.
 
@@ -619,12 +729,6 @@ The equations, finite-difference observer loops, and scale-invariant titration f
 > ⚠️ **IMPORTANT COMMERCIAL DISCLAIMER**
 >
 > The open-source core is a reference implementation of the tracking calculus, intended to be computationally reproducible against clean or idealized baselines. Running this model live on an active field operator or an ambulatory patient — without drowning in strenuous physical-motion noise — requires the proprietary signal-conditioning matrices engineered exclusively into **Auditor OS Oracle**.
-
-### License
-
-This repository is licensed under the **Business Source License 1.1 (BSL 1.1)** by Thohat Ventures. Non-commercial research and developer use is permitted; commercial production use requires a separate license from Thohat Ventures. The Software transitions to **Apache 2.0** on **May 25, 2030**.
-
-See [LICENSE](LICENSE) for the full terms.
 
 ### ⚖️ Academic Nomenclature & Calibration Notice
 
