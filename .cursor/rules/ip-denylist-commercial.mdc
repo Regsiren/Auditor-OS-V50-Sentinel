@@ -1,0 +1,18 @@
+---
+description: Permanent IP denylist — never import commercial sandbox modules into the public open-core repo.
+alwaysApply: true
+---
+
+# Public repo IP denylist (`Auditor-OS-V50-Sentinel`)
+
+Never move, copy, stage, commit, generate, or re-implement under another name the following commercial modules into this repository. They must permanently remain inside `Auditor_Sovereign_Sandbox` only:
+
+1. `generate_scada.py`
+2. `ingestion_spline.py`
+3. `thermodynamic_calculus.py`
+4. `phase_space_gating.py`
+5. `rfc001_packaging.py`
+
+Also never vendor `sdk/src/sentinelgate/`, Break-Glass / Four-Eyes override code, Twin-Gauge distillation, or private PIN/HSM bridges into this public tree.
+
+If a task appears to require any denylisted file, stop and keep the work in the private sandbox instead.

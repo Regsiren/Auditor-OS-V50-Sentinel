@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sentinel-core"
+version = "1.1.1"
+description = "RFC-001 kinematic gatekeeper + open-core MCP stdio proxy (Auditor OS V50 Sentinel)"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "BUSL-1.1" }
+dependencies = [
+    "pydantic>=2.0.0",
+    "pynacl>=1.5.0",
+]
+
+[project.optional-dependencies]
+ai = [
+    "torch>=2.2.0",
+    "transformers>=4.40.0",
+]
+dev = [
+    "pytest>=8.0.0",
+]
+
+[project.scripts]
+sentinel-mcp = "sentinel_mcp.cli:run"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "evaluations"]
+pythonpath = [".", "src"]
+python_files = ["test_*.py", "*_eval.py", "*_bench.py"]

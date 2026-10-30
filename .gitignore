@@ -26,3 +26,18 @@ Thumbs.db
 
 # Generated sample datasets (reproducible via the synthesizers)
 data/MARITIME_ASSET_STRUCTURAL_STREAM.csv
+
+# ---------------------------------------------------------------------------
+# IP DENYLIST — commercial modules that must NEVER enter this public repo.
+# Canonical home: Auditor_Sovereign_Sandbox only.
+# ---------------------------------------------------------------------------
+generate_scada.py
+ingestion_spline.py
+thermodynamic_calculus.py
+phase_space_gating.py
+rfc001_packaging.py
+**/generate_scada.py
+**/ingestion_spline.py
+**/thermodynamic_calculus.py
+**/phase_space_gating.py
+**/rfc001_packaging.py
