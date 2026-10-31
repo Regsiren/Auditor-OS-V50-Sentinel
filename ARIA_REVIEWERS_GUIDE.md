@@ -5,6 +5,11 @@
 **Companion roadmap:** [`docs/ARIA_TECHNICAL_ROADMAP.md`](docs/ARIA_TECHNICAL_ROADMAP.md)  
 **Scope:** Open-core Dual-Head governor only — no commercial SentinelGate SDK, Twin-Gauge, or Break-Glass override IP
 
+> **Cross-domain scale invariance (review panel context)**  
+> Neural representations are treated as **dynamical trajectories on a manifold**: residual-stream coordinates $\theta_t$ evolve under the same finite-difference / fatigue / phase-gate observer used for physical telemetry.  
+> The sibling tracks [`aegis/`](aegis/) (SCADA / municipal fluid infrastructure) and [`spec/`](spec/) (ISO 20022 / RFC-001 financial rails) are **proof points of that scale invariance** — continuous physical systems and discrete clearing-state machines under one Dual-Pillar calculus.  
+> **ARIA reviewers should focus strictly on [`auditor_ai/`](auditor_ai/) and [`evaluations/`](evaluations/).** Treat `aegis/` and `spec/` as optional context only; they are not in-scope for the ARIA panel scoring surface.
+
 ---
 
 ## 1. What to review
