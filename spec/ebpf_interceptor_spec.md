@@ -3,7 +3,7 @@
 **Protocol:** THOHAT-V50-SENTINEL  
 **Schema companion:** [`sent_attestation.json`](sent_attestation.json) (Dual-Pillar v1.0)  
 **Trigger condition:** `thermodynamic_state_vector.state_coordinate_omega >= 0.19` (Topological Veto)  
-**Master whitepaper:** [doi:10.5281/zenodo.23185495](https://doi.org/10.5281/zenodo.23185495)
+**Master whitepaper:** [doi:10.5281/zenodo.23677470](https://doi.org/10.5281/zenodo.23677470)
 
 ---
 

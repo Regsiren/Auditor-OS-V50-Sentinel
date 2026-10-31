@@ -125,7 +125,7 @@ def mint_sentinel_evidence_bag(
     rolling_window: int = 30,
     ebpf_intercept_armed: bool = False,
     chain_of_custody_verified: bool | None = None,
-    doi_reference: str = "10.5281/zenodo.23185495",
+    doi_reference: str = "10.5281/zenodo.23677470",
 ) -> str:
     """
     Legacy Streamlit evidence bag (pre–Investor-Brief Dual-Pillar layout).
@@ -433,7 +433,7 @@ def mint_sentinel_v10_bag(
     layer_depth_index: int = 0,
     hardware_node_id: str | None = None,
     zone_or_session_id: str = "ZONE-07-RESIDUAL_STREAM",
-    doi_reference: str = "10.5281/zenodo.23185495",
+    doi_reference: str = "10.5281/zenodo.23677470",
     private_key_bytes: bytes | None = None,
     hmac_key: bytes | None = None,
     ephemeral_session: dict[str, Any] | None = None,
@@ -548,7 +548,7 @@ def mint_sentinel_v10_from_report(
     layer_depth_index: int = 0,
     private_key_bytes: bytes | None = None,
     hmac_key: bytes | None = None,
-    doi_reference: str = "10.5281/zenodo.23185495",
+    doi_reference: str = "10.5281/zenodo.23677470",
 ) -> dict[str, Any]:
     """
     Mint a schema-conformant Dual-Pillar v1.0 bag from an Engine / AI report dict.

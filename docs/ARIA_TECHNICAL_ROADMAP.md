@@ -4,7 +4,7 @@
 **Protocol:** THOHAT-V50-SENTINEL / Sovereign Oracle Protocol  
 **Implementation:** `auditor_ai/adaptive_engine.py`  
 (`ScaledAdaptiveSentinelAuditor`, `PrefillSentinelAuditor`, `HardenedHomeostaticSentinelCore`)  
-**Master DOI:** [10.5281/zenodo.23185495](https://doi.org/10.5281/zenodo.23185495)  
+**Master DOI:** [10.5281/zenodo.23677470](https://doi.org/10.5281/zenodo.23677470)  
 **Audience:** ARIA programme reviewers, AI safety researchers, independent auditors
 
 ---
@@ -102,7 +102,7 @@ Every Stage I / Stage II veto mints a bag with **exactly four** top-level blocks
     "prev_bag_hash": null,
     "crypto_seed_matrix": {
       "salt_id": "THOHAT-V50-SENTINEL",
-      "doi_reference": "10.5281/zenodo.23185495",
+      "doi_reference": "10.5281/zenodo.23677470",
       "zone_or_session_id": "ZONE-07-RESIDUAL_STREAM"
     }
   },

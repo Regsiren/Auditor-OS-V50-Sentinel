@@ -8,7 +8,7 @@
 [![UKIPO Priority Locked](https://img.shields.io/badge/UKIPO-Priority%20Locked%20(Patent%20Pending)-purple)](#11-intellectual-property--citation)
 [![RFC-001 Spec](https://img.shields.io/badge/RFC--001%20Spec-10.5281%2Fzenodo.23520815-blue)](https://doi.org/10.5281/zenodo.23520815)
 [![Technical Briefing](https://img.shields.io/badge/Technical%20Briefing-10.5281%2Fzenodo.23515244-blue)](https://doi.org/10.5281/zenodo.23515244)
-[![Master Whitepaper](https://img.shields.io/badge/Master%20Whitepaper-10.5281%2Fzenodo.23185495-blue)](https://doi.org/10.5281/zenodo.23185495)
+[![Master Whitepaper](https://img.shields.io/badge/Master%20Whitepaper-10.5281%2Fzenodo.23677470-blue)](https://doi.org/10.5281/zenodo.23677470)
 [![Fiduciary Theory of Entropy](https://img.shields.io/badge/Fiduciary%20Theory%20of%20Entropy-SSRN%206704958-orange)](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6704958)
 [![Production Gateway](https://img.shields.io/badge/Gateway-sentinelgate.dev-0A84FF)](https://sentinelgate.dev)
 [![License: BSL 1.1](https://img.shields.io/badge/License-BSL%201.1%20(May%202030)-blue.svg)](LICENSE)
@@ -163,9 +163,9 @@ The mathematical architecture, scale-invariant algorithms, and multi-domain vali
 
 ### Master Whitepaper (Sovereign Oracle Protocol)
 
-* **Intrinsic Alignment via Thermodynamic Homeostasis: Scale-Invariant Latent Phase Space Tracking and Cryptographic Data Attestation for Frontier Synthetic Intelligence**
+* **Upstream Latent Trajectory Governance: Information Geometry, eBPF Kernel Drops, and Cryptographic Attestation for Autonomous Systems**
   * *Scope:* Unifies AI Homeostasis and Internet Cybersecurity under the Sovereign Oracle Protocol.
-  * *Permanent Digital Record:* [https://doi.org/10.5281/zenodo.23185495](https://doi.org/10.5281/zenodo.23185495)
+  * *Permanent Digital Record:* [https://doi.org/10.5281/zenodo.23677470](https://doi.org/10.5281/zenodo.23677470)
 
 ### Core Mathematical Theory
 
